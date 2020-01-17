@@ -2,26 +2,22 @@ import React from "react"
 import {Container, Fab, Icon, Text, View} from "native-base"
 import {SwipeListView} from "react-native-swipe-list-view"
 import {NavigationStackScreenComponent} from "react-navigation-stack"
-import firebase from "react-native-firebase"
 import {DateTime} from "luxon"
 
+import {useAuthState} from "../auth/context"
 import {Expense} from "./model"
 
 import classes from "./list.scss"
 
-firebase
-  .auth()
-  .signInAnonymously()
-  .then(user => {
-    console.log(user)
-  })
-
 const ExpenseList: NavigationStackScreenComponent = props => {
+  const auth = useAuthState()
   const {navigate} = props.navigation
 
   const expenses: Expense[] = [
     {id: "1", cat: "cat", desc: "desc", amount: 54.3, date: DateTime.utc()},
   ]
+
+  console.log(auth)
 
   return (
     <Container>

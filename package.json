@@ -18,6 +18,7 @@
     "@babel/runtime": "^7.6.2",
     "@react-native-community/eslint-config": "^0.0.5",
     "@types/jest": "^24.0.24",
+    "@types/lodash": "^4.14.149",
     "@types/luxon": "^1.21.0",
     "@types/node": "^13.1.7",
     "@types/react-native": "kristerkari/react-native-types-for-css-modules",
@@ -42,6 +43,7 @@
   },
   "dependencies": {
     "@react-native-community/masked-view": "^0.1.6",
+    "lodash": "^4.17.15",
     "luxon": "^1.21.3",
     "native-base": "^2.13.8",
     "react": "16.9.0",
