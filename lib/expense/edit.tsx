@@ -1,5 +1,5 @@
 import React, {useState} from "react"
-import {NativeSyntheticEvent, TextInputChangeEventData} from "react-native"
+import {NativeSyntheticEvent, TextInputChangeEventData, StyleSheet} from "react-native"
 import {NavigationStackScreenComponent} from "react-navigation-stack"
 import {DateTime} from "luxon"
 import {
@@ -13,25 +13,19 @@ import {
   Icon,
   Input,
   Item,
-  Text,
 } from "native-base"
 
+import {Expense, emptyExpense} from "./model"
 import useExpenses from "./context"
 
-import classes from "./edit.scss"
-
-const placeholderStyle = {
-  fontSize: 18,
-  color: "#b0b0b0",
-}
-
-const ExpenseEdit: NavigationStackScreenComponent = props => {
-  const {navigate} = props.navigation
+const ExpenseEdit: NavigationStackScreenComponent<{expense: Expense}> = props => {
+  const {navigate, state} = props.navigation
+  const expense = (state.params && state.params.expense) || emptyExpense
   const $expense = useExpenses()
-  const [amount, setAmount] = useState("")
-  const [date, setDate] = useState(DateTime.utc().toJSDate())
-  const [cat, setCat] = useState("")
-  const [desc, setDesc] = useState("")
+  const [amount, setAmount] = useState(expense.amount ? expense.amount.toString() : "")
+  const [date, setDate] = useState(expense.date)
+  const [cat, setCat] = useState(expense.cat || "")
+  const [desc, setDesc] = useState(expense.desc || "")
 
   function formatDate(date: Date) {
     return DateTime.fromJSDate(date).toFormat("dd/LL/yyyy")
@@ -41,8 +35,13 @@ const ExpenseEdit: NavigationStackScreenComponent = props => {
     return (evt: NativeSyntheticEvent<TextInputChangeEventData>) => handler(evt.nativeEvent.text)
   }
 
-  async function addExpense() {
-    await $expense.update({amount: +amount, date, cat, desc})
+  async function save() {
+    await $expense.update({...expense, amount: +amount, date, cat, desc})
+    navigate("ExpenseList")
+  }
+
+  async function remove() {
+    await $expense.delete(expense.id)
     navigate("ExpenseList")
   }
 
@@ -53,20 +52,20 @@ const ExpenseEdit: NavigationStackScreenComponent = props => {
           <Item>
             <Icon type="MaterialIcons" name="euro-symbol" />
             <Input
-              className={classes.input}
               autoFocus
               placeholder="Amount"
               keyboardType="numeric"
               placeholderTextColor="#b0b0b0"
               value={amount}
               onChange={handleInputChange(setAmount)}
+              style={styles.input}
             />
           </Item>
           <Item>
             <Icon type="MaterialCommunityIcons" name="calendar-month" />
             <DatePicker
               placeHolderText={formatDate(date)}
-              placeHolderTextStyle={placeholderStyle}
+              placeHolderTextStyle={styles.placeholder}
               formatChosenDate={formatDate}
               defaultDate={date}
               onDateChange={setDate}
@@ -75,30 +74,35 @@ const ExpenseEdit: NavigationStackScreenComponent = props => {
           <Item>
             <Icon type="MaterialCommunityIcons" name="tag-outline" />
             <Input
-              className={classes.input}
               placeholder="Category"
               placeholderTextColor="#b0b0b0"
               value={cat}
               onChange={handleInputChange(setCat)}
+              style={styles.input}
             />
           </Item>
           <Item>
             <Icon type="MaterialCommunityIcons" name="text" />
             <Input
-              className={classes.input}
               placeholder="Description"
               placeholderTextColor="#b0b0b0"
               value={desc}
               onChange={handleInputChange(setDesc)}
+              style={styles.input}
             />
           </Item>
         </Form>
       </Content>
       <Footer>
         <FooterTab>
-          <Button onPress={addExpense}>
-            <Icon type="MaterialIcons" name="save" />
-            <Text>Save</Text>
+          {(expense.id && (
+            <Button danger onPress={remove}>
+              <Icon type="FontAwesome" name="trash-o" style={styles.btn} />
+            </Button>
+          )) ||
+            null}
+          <Button onPress={save}>
+            <Icon type="MaterialIcons" name="save" style={styles.btn} />
           </Button>
         </FooterTab>
       </Footer>
@@ -109,5 +113,22 @@ const ExpenseEdit: NavigationStackScreenComponent = props => {
 ExpenseEdit.navigationOptions = {
   title: "Edit",
 }
+
+const styles = StyleSheet.create({
+  form: {
+    flex: 1,
+  },
+  input: {
+    fontSize: 18,
+    paddingLeft: 10,
+  },
+  placeholder: {
+    fontSize: 18,
+    color: "#b0b0b0",
+  },
+  btn: {
+    color: "#ffffff",
+  },
+})
 
 export default ExpenseEdit
