@@ -24,6 +24,18 @@ export const ExpenseContextProvider: FC = ({children}) => {
   const auth = useAuthState()
   const [expenses, setExpenses] = useState(emptyState.expenses)
 
+  async function update(expense: Partial<Expense>, merge = true) {
+    if (auth.initialized && auth.authenticated) {
+      await $expense.update(auth.fsUser.id, expense, merge)
+    }
+  }
+
+  async function _delete(id: string) {
+    if (auth.initialized && auth.authenticated) {
+      await $expense.delete(auth.fsUser.id, id)
+    }
+  }
+
   useEffect(() => {
     if (!auth.initialized || !auth.authenticated) return
     const unsub = $expense.onExpensesChanged(auth.fsUser.id, setExpenses)
@@ -31,7 +43,7 @@ export const ExpenseContextProvider: FC = ({children}) => {
   }, [auth])
 
   return (
-    <ExpenseContext.Provider value={{expenses, update: noop, delete: noop}}>
+    <ExpenseContext.Provider value={{expenses, update, delete: _delete}}>
       {children}
     </ExpenseContext.Provider>
   )

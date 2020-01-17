@@ -3,7 +3,7 @@ import {DateTime} from "luxon"
 export type Expense = {
   id: string
   amount: number
-  date: DateTime
+  date: Date
   cat?: string
   desc?: string
 }
@@ -11,5 +11,5 @@ export type Expense = {
 export const emptyExpense: Expense = {
   id: "",
   amount: 0,
-  date: DateTime.utc(),
+  date: DateTime.utc().toJSDate(),
 }

@@ -11,7 +11,8 @@ export function onExpensesChanged(userId: string, handler: ExpenseChangedHandler
 }
 
 export function update(userId: string, expense: Partial<Expense>, merge = true) {
-  return firestore(`users/${userId}/expenses`, expense.id).set(expense, {merge})
+  const id = expense.id || firestore(`users/${userId}/expenses`).doc().id
+  return firestore(`users/${userId}/expenses`, id).set({...expense, id}, {merge})
 }
 
 export {_delete as delete}

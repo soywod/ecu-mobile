@@ -12,6 +12,4 @@ const navigator = createStackNavigator(
   {initialRouteKey: "ExpenseList"},
 )
 
-const App = createAppContainer(navigator)
-
-export default App
+export default createAppContainer(navigator)
