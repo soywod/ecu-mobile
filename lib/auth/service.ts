@@ -20,16 +20,18 @@ async function createUserIfNull(id: string) {
 }
 
 type AuthStateChangedHandler = (fbUser: FirebaseUser, fsUser: FirestoreUser) => void
-export const onAuthStateChanged = (handler: AuthStateChangedHandler) =>
-  auth.onAuthStateChanged(async maybeFbUser => {
+export function onAuthStateChanged(handler: AuthStateChangedHandler) {
+  return auth.onAuthStateChanged(async maybeFbUser => {
     const fbUser = await signInIfNull(maybeFbUser)
     const fsUser = await createUserIfNull(fbUser.uid)
     handler(fbUser, fsUser)
   })
+}
 
 type UserChangedHandler = (fsUser: FirestoreUser) => void
-export const onUserChanged = (id: string, handler: UserChangedHandler) =>
-  firestore("users", id).onSnapshot(ref => handler({...emptyUser, ...ref.data(), id}))
+export function onUserChanged(id: string, handler: UserChangedHandler) {
+  return firestore("users", id).onSnapshot(ref => handler({...emptyUser, ...ref.data(), id}))
+}
 
 export default {
   onAuthStateChanged,
