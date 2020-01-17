@@ -1,17 +1,17 @@
-import React, {FC} from "react"
-import {NativeRouter, Route, Redirect} from "react-router-native"
+import {createAppContainer} from "react-navigation"
+import {createStackNavigator} from "react-navigation-stack"
 
 import ExpenseList from "../expense/list"
 import ExpenseEdit from "../expense/edit"
 
-const App: FC = () => {
-  return (
-    <NativeRouter>
-      <Route path="/expenses/:id" component={ExpenseEdit} />
-      <Route path="/expenses" component={ExpenseList} />
-      <Redirect to="/expenses" />
-    </NativeRouter>
-  )
-}
+const navigator = createStackNavigator(
+  {
+    ExpenseList: {screen: ExpenseList},
+    ExpenseEdit: {screen: ExpenseEdit},
+  },
+  {initialRouteKey: "ExpenseList"},
+)
+
+const App = createAppContainer(navigator)
 
 export default App
