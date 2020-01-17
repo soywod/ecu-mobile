@@ -2,11 +2,19 @@ import React from "react"
 import {Container, Fab, Icon, Text, View} from "native-base"
 import {SwipeListView} from "react-native-swipe-list-view"
 import {NavigationStackScreenComponent} from "react-navigation-stack"
+import firebase from "react-native-firebase"
 import {DateTime} from "luxon"
 
 import {Expense} from "./model"
 
 import classes from "./list.scss"
+
+firebase
+  .auth()
+  .signInAnonymously()
+  .then(user => {
+    console.log(user)
+  })
 
 const ExpenseList: NavigationStackScreenComponent = props => {
   const {navigate} = props.navigation
