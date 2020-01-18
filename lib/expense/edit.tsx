@@ -27,7 +27,7 @@ import {showToast} from "../app/toast"
 import {Expense, emptyExpense} from "./model"
 import useExpenses from "./context"
 
-const ExpenseEdit: NavigationStackScreenComponent<{expense: Expense}> = props => {
+const ExpenseEdit: NavigationStackScreenComponent<{expense?: Expense}> = props => {
   const {navigate, state} = props.navigation
   const expense = (state.params && state.params.expense) || emptyExpense
   const {expenses, ...$expense} = useExpenses()

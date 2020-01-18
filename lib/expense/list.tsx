@@ -67,10 +67,6 @@ const ExpenseList: NavigationStackScreenComponent = props => {
   )
 }
 
-ExpenseList.navigationOptions = {
-  title: "List",
-}
-
 const styles = StyleSheet.create({
   row: {
     paddingHorizontal: 10,
@@ -96,6 +92,18 @@ const styles = StyleSheet.create({
     zIndex: 999,
     backgroundColor: "#3f51b5",
   },
+  profileIcon: {
+    color: "rgba(0, 0, 0, 0.9)",
+  },
+})
+
+ExpenseList.navigationOptions = ({navigation}) => ({
+  title: "List",
+  headerRight: () => (
+    <Button transparent onPress={() => navigation.navigate("Settings")}>
+      <Icon type="MaterialIcons" name="settings" style={styles.profileIcon} />
+    </Button>
+  ),
 })
 
 export default ExpenseList
