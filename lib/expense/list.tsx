@@ -1,6 +1,6 @@
 import React from "react"
 import {TouchableNativeFeedback, FlatList, StyleSheet} from "react-native"
-import {Button, Container, Content, Fab, Icon, Text, View, Footer, FooterTab} from "native-base"
+import {Button, Container, Content, Icon, Text, View, Footer, FooterTab} from "native-base"
 import {NavigationStackScreenComponent} from "react-navigation-stack"
 import {DateTime} from "luxon"
 
@@ -48,7 +48,7 @@ const ExpenseList: NavigationStackScreenComponent = props => {
                   {DateTime.fromJSDate(expense.date).toFormat("dd/LL/yy")}
                 </Text>
                 <Text numberOfLines={1} style={styles.desc}>
-                  {expense.desc}
+                  {expense.desc || expense.cat}
                 </Text>
                 <Text style={styles.amount}>{toEuro(expense.amount)}</Text>
               </View>
@@ -58,8 +58,8 @@ const ExpenseList: NavigationStackScreenComponent = props => {
       </Content>
       <Footer>
         <FooterTab>
-          <Button onPress={() => navigate("ExpenseEdit")}>
-            <Icon type="MaterialIcons" name="add" style={styles.icon} />
+          <Button light onPress={() => navigate("ExpenseEdit")}>
+            <Icon type="MaterialIcons" name="add" />
           </Button>
         </FooterTab>
       </Footer>
@@ -91,9 +91,6 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     fontWeight: "bold",
     paddingLeft: 5,
-  },
-  icon: {
-    color: "#ffffff",
   },
   add: {
     zIndex: 999,
