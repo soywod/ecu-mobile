@@ -15,6 +15,8 @@ import {
   Item,
 } from "native-base"
 
+import {confirm} from "../app/alert"
+import {showToast} from "../app/toast"
 import {Expense, emptyExpense} from "./model"
 import useExpenses from "./context"
 
@@ -35,24 +37,27 @@ const ExpenseEdit: NavigationStackScreenComponent<{expense: Expense}> = props =>
     return (evt: NativeSyntheticEvent<TextInputChangeEventData>) => handler(evt.nativeEvent.text)
   }
 
-  async function save() {
-    await $expense.update({...expense, amount: +amount, date, cat, desc})
+  function save() {
+    $expense.update({...expense, amount: +amount, date, cat, desc})
+    showToast(`Expense successfully ${expense.id ? "updated" : "added"}!`)
     navigate("ExpenseList")
   }
 
-  async function remove() {
-    await $expense.delete(expense.id)
-    navigate("ExpenseList")
+  function _delete() {
+    confirm("Confirm", "Are you sure to delete this expense?", async () => {
+      $expense.delete(expense.id)
+      showToast("Expense successfully deleted!")
+      navigate("ExpenseList")
+    })
   }
 
   return (
     <Container>
-      <Content>
+      <Content padder>
         <Form>
           <Item>
             <Icon type="MaterialIcons" name="euro-symbol" />
             <Input
-              autoFocus
               placeholder="Amount"
               keyboardType="numeric"
               placeholderTextColor="#b0b0b0"
@@ -81,7 +86,7 @@ const ExpenseEdit: NavigationStackScreenComponent<{expense: Expense}> = props =>
               style={styles.input}
             />
           </Item>
-          <Item>
+          <Item last>
             <Icon type="MaterialCommunityIcons" name="text" />
             <Input
               placeholder="Description"
@@ -96,7 +101,7 @@ const ExpenseEdit: NavigationStackScreenComponent<{expense: Expense}> = props =>
       <Footer>
         <FooterTab>
           {(expense.id && (
-            <Button danger onPress={remove}>
+            <Button danger onPress={_delete}>
               <Icon type="FontAwesome" name="trash-o" style={styles.btn} />
             </Button>
           )) ||
