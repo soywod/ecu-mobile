@@ -34,10 +34,12 @@
     "eslint-plugin-react": "^7.18.0",
     "eslint-plugin-react-hooks": "^2.3.0",
     "jest": "^24.9.0",
+    "jetifier": "^1.6.5",
     "metro-react-native-babel-preset": "^0.56.0",
     "prettier": "^1.19.1",
     "react-test-renderer": "16.9.0",
-    "typescript": "^3.7.3"
+    "typescript": "^3.7.3",
+    "yarn-run-all": "^3.1.1"
   },
   "dependencies": {
     "@react-native-community/google-signin": "^3.0.4",
@@ -59,6 +61,14 @@
   },
   "scripts": {
     "android": "react-native run-android",
+    "android:bundle:jetifier": "jetifier",
+    "android:bundle:clean:drawable": "rm -rf android/app/src/main/res/drawable-*",
+    "android:bundle:clean:raw": "rm -rf android/app/src/main/res/raw/*",
+    "preandroid:bundle": "run-s android:bundle:clean:* android:bundle:jetifier",
+    "android:bundle": "react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/build/intermediates/res/merged/release/",
+    "android:assemble": "cd android && ./gradlew assembleRelease",
+    "preandroid:release": "yarn android:bundle",
+    "android:release": "yarn android:assemble",
     "ios": "react-native run-ios",
     "start": "react-native start",
     "test": "jest",
