@@ -1,28 +1,142 @@
-import React from "react"
-import {StyleSheet} from "react-native"
-import {Button, Container, Content, Icon, Text, Footer, FooterTab} from "native-base"
+import React, {useState} from "react"
+import RN, {ActivityIndicator, StyleSheet} from "react-native"
+import {Button, Container, Content, Form, Input, Item, Text, View} from "native-base"
 import {NavigationStackScreenComponent} from "react-navigation-stack"
 
-const Settings: NavigationStackScreenComponent = props => {
-  const {navigate} = props.navigation
+import useAsync from "../async/context"
+import {showToast} from "../app/toast"
+import useAuth from "../auth/context"
+
+const Settings: NavigationStackScreenComponent = () => {
+  const {auth, ...$auth} = useAuth()
+  const {isLoading, setLoading} = useAsync()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const isAnonymous = !auth.initialized || !auth.authenticated || auth.fsUser.type === "anonymous"
+
+  function handleInputChange(handler: React.Dispatch<React.SetStateAction<string>>) {
+    return (evt: RN.NativeSyntheticEvent<RN.TextInputChangeEventData>) => {
+      handler(evt.nativeEvent.text || "")
+    }
+  }
+
+  async function signIn() {
+    setLoading(true)
+
+    try {
+      await $auth.signIn(email, password)
+    } catch (err) {
+      showToast(err.message, "danger")
+    }
+
+    setLoading(false)
+  }
+
+  async function signOut() {
+    setLoading(true)
+
+    try {
+      await $auth.signOut()
+      $auth.setAuth({initialized: true, authenticated: false})
+    } catch (err) {
+      showToast(err.message, "danger")
+    }
+
+    setLoading(false)
+  }
+
+  function getEmail() {
+    if (auth.initialized && auth.authenticated) {
+      return auth.fbUser.email
+    }
+
+    return null
+  }
 
   return (
     <Container>
       <Content padder>
-        <Text>Settings</Text>
+        <View>
+          {isAnonymous ? (
+            <>
+              <Text style={styles.connectHelp}>
+                Please connect to synchronize your expenses with all your devices:
+              </Text>
+              <Form>
+                <Item>
+                  <Input
+                    keyboardType="email-address"
+                    placeholder="Email"
+                    placeholderTextColor="#b0b0b0"
+                    value={email}
+                    onChange={handleInputChange(setEmail)}
+                    style={styles.input}
+                  />
+                </Item>
+                <Item>
+                  <Input
+                    keyboardType="visible-password"
+                    placeholder="Password"
+                    placeholderTextColor="#b0b0b0"
+                    value={password}
+                    onChange={handleInputChange(setPassword)}
+                    style={styles.input}
+                  />
+                </Item>
+                <Button
+                  full
+                  onPress={signIn}
+                  disabled={isLoading || !email || !password}
+                  style={styles.signInEmailBtn}
+                >
+                  {isLoading ? (
+                    <ActivityIndicator size="large" color="#ffffff" />
+                  ) : (
+                    <Text>Sign in</Text>
+                  )}
+                </Button>
+              </Form>
+            </>
+          ) : (
+            <>
+              <Text>You are identified with:</Text>
+              <Text style={styles.email}>{getEmail()}</Text>
+              <Button
+                light
+                full
+                onPress={signOut}
+                disabled={isLoading}
+                style={styles.signInEmailBtn}
+              >
+                {isLoading ? <ActivityIndicator color="#000000" /> : <Text>Sign out</Text>}
+              </Button>
+            </>
+          )}
+        </View>
       </Content>
-      <Footer>
-        <FooterTab>
-          <Button light onPress={() => navigate("ExpenseEdit")}>
-            <Icon type="MaterialIcons" name="add" />
-          </Button>
-        </FooterTab>
-      </Footer>
     </Container>
   )
 }
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+  connectHelp: {
+    marginBottom: 15,
+  },
+  signInEmailBtn: {
+    marginTop: 30,
+  },
+  signInGoogleBtn: {
+    marginTop: 5,
+  },
+  input: {
+    fontSize: 18,
+    paddingLeft: 10,
+  },
+  email: {
+    fontStyle: "italic",
+    color: "rgba(0, 0, 0, .5)",
+  },
+})
 
 Settings.navigationOptions = {
   title: "Settings",

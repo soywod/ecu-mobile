@@ -1,20 +1,10 @@
-import React, {FC, Reducer, Dispatch, createContext, useContext, useEffect, useReducer} from "react"
+import React, {FC, createContext, useMemo, useContext, useEffect, useState} from "react"
 import isEqual from "lodash/fp/isEqual"
 import noop from "lodash/fp/noop"
 
 import {User as FirebaseUser} from "../app/firebase"
 import {User as FirestoreUser} from "./model"
 import $auth from "./service"
-
-type AuthAction =
-  | {
-      type: "authenticate"
-      fbUser: FirebaseUser
-      fsUser: FirestoreUser
-    }
-  | {
-      type: "logout"
-    }
 
 type NotInitialized = {
   initialized: false
@@ -33,68 +23,77 @@ type Authenticated = {
 }
 
 type AuthState = NotInitialized | NotAuthenticated | Authenticated
-type AuthDispatch = Dispatch<AuthAction>
+type AuthDispatch = {
+  setAuth: React.Dispatch<React.SetStateAction<AuthState>>
+  signIn: (email: string, password: string) => Promise<void>
+  signInWithGoogle: () => Promise<void>
+  signOut: () => Promise<void>
+}
 
 const emptyState: AuthState = {initialized: false}
 
 const AuthContextState = createContext<AuthState>(emptyState)
-const AuthContextDispatch = createContext<AuthDispatch>(noop)
-
-const reducer: Reducer<AuthState, AuthAction> = (state, action) => {
-  switch (action.type) {
-    case "authenticate":
-      return {
-        initialized: true,
-        authenticated: true,
-        fbUser: action.fbUser,
-        fsUser: action.fsUser,
-      }
-
-    case "logout":
-      return {
-        initialized: true,
-        authenticated: false,
-      }
-
-    default:
-      return state
-  }
-}
+const AuthContextDispatch = createContext<AuthDispatch>({
+  setAuth: noop,
+  signIn: Promise.resolve,
+  signInWithGoogle: Promise.resolve,
+  signOut: Promise.resolve,
+})
 
 export const useAuthState = () => useContext(AuthContextState)
 export const useAuthDispatch = () => useContext(AuthContextDispatch)
 export const useAuth = () => {
-  const state = useAuthState()
+  const auth = useAuthState()
   const dispatch = useAuthDispatch()
-  return {state, dispatch}
+  return {auth, ...dispatch}
 }
 
 export const AuthContextProvider: FC = ({children}) => {
-  const [state, dispatch] = useReducer(reducer, emptyState)
+  const [auth, setAuth] = useState<AuthState>(emptyState)
 
   useEffect(() => {
     const unsubscribe = $auth.onAuthStateChanged((fbUser, fsUser) => {
-      dispatch({type: "authenticate", fbUser, fsUser})
+      setAuth({
+        initialized: true,
+        authenticated: true,
+        fbUser,
+        fsUser,
+      })
     })
 
     return () => unsubscribe()
-  }, [dispatch, state.initialized])
+  }, [])
 
   useEffect(() => {
-    if (state.initialized && state.authenticated) {
-      const unsubscribe = $auth.onUserChanged(state.fsUser.id, fsUser => {
-        if (!isEqual(fsUser, state.fsUser)) {
-          dispatch({type: "authenticate", fbUser: state.fbUser, fsUser})
+    if (auth.initialized && auth.authenticated) {
+      const unsubscribe = $auth.onUserChanged(auth.fsUser.id, fsUser => {
+        if (!isEqual(fsUser, auth.fsUser)) {
+          setAuth({
+            initialized: true,
+            authenticated: true,
+            fbUser: auth.fbUser,
+            fsUser,
+          })
         }
       })
 
       return () => unsubscribe()
     }
-  }, [state])
+  }, [auth])
+
+  const dispatch = useMemo(
+    () => ({
+      setAuth,
+      signIn: $auth.signIn,
+      signInWithGoogle: $auth.signInWithGoogle,
+      signOut: $auth.signOut,
+    }),
+    [],
+  )
 
   return (
     <AuthContextDispatch.Provider value={dispatch}>
-      <AuthContextState.Provider value={state}>{children}</AuthContextState.Provider>
+      <AuthContextState.Provider value={auth}>{children}</AuthContextState.Provider>
     </AuthContextDispatch.Provider>
   )
 }
