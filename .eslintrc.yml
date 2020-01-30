@@ -33,6 +33,7 @@ rules:
   jsx-a11y/no-autofocus: 0
   max-classes-per-file: 0
   no-alert: 0
+  no-bitwise: 0
   no-console: 0
   no-empty-function: 0
   no-shadow: 0

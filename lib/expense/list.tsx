@@ -1,9 +1,26 @@
-import React from "react"
-import {TouchableNativeFeedback, FlatList, StyleSheet} from "react-native"
+import React, {Fragment} from "react"
+import {View, ScrollView, StyleSheet} from "react-native"
 import {NavigationStackScreenComponent} from "react-navigation-stack"
-import {Button, Container, Footer, FooterTab, Icon, Tab, Tabs, Text, View} from "native-base"
+import {
+  Badge,
+  Button,
+  Container,
+  Footer,
+  FooterTab,
+  Icon,
+  Left,
+  List,
+  ListItem,
+  Right,
+  Tab,
+  Tabs,
+  Text,
+} from "native-base"
 import {DateTime} from "luxon"
+import groupBy from "lodash/fp/groupBy"
+import keys from "lodash/fp/keys"
 
+import strToColor from "../app/str-to-color"
 import {confirm} from "../app/alert"
 import {showToast} from "../app/toast"
 import {toEuro} from "../app/currency"
@@ -30,6 +47,54 @@ const ExpenseList: NavigationStackScreenComponent = props => {
     }
   }
 
+  const expensesGroupedByDay = groupBy(
+    e => DateTime.fromJSDate(e.date).toFormat("dd/LL/yy"),
+    expenses,
+  )
+
+  function renderDailyExpenses(date: string) {
+    const expenses = expensesGroupedByDay[date]
+
+    return (
+      <Fragment key={date}>
+        <ListItem itemHeader style={styles.headerRow}>
+          <Left>
+            <Text style={styles.date}>{date}</Text>
+          </Left>
+          <Right>
+            <Text style={styles.total}>
+              {toEuro(expenses.reduce((total, {amount}) => total + amount, 0))}
+            </Text>
+          </Right>
+        </ListItem>
+        {expenses.map(expense => (
+          <ListItem
+            key={expense.id}
+            delayPressIn={50}
+            delayPressOut={0}
+            onPress={editExpense(expense)}
+            onLongPress={deleteExpense(expense.id)}
+            style={styles.row}
+          >
+            <View style={styles.catView}>
+              {expense.cat ? (
+                <Badge style={{...styles.catBadge, backgroundColor: strToColor(expense.cat)}}>
+                  <Text numberOfLines={1} style={styles.cat}>
+                    {expense.cat.toLowerCase()}
+                  </Text>
+                </Badge>
+              ) : null}
+            </View>
+            <Text numberOfLines={1} style={styles.desc}>
+              {expense.desc}
+            </Text>
+            <Text style={styles.amount}>{toEuro(expense.amount)}</Text>
+          </ListItem>
+        ))}
+      </Fragment>
+    )
+  }
+
   return (
     <Container>
       <Tabs tabBarUnderlineStyle={styles.tabBarUnderlineStyle}>
@@ -40,28 +105,9 @@ const ExpenseList: NavigationStackScreenComponent = props => {
           textStyle={styles.textStyle}
           activeTextStyle={styles.activeTextStyle}
         >
-          <FlatList
-            data={expenses}
-            keyExtractor={e => e.id}
-            renderItem={({item: expense}) => (
-              <TouchableNativeFeedback
-                delayPressIn={0}
-                delayPressOut={0}
-                onPress={editExpense(expense)}
-                onLongPress={deleteExpense(expense.id)}
-              >
-                <View style={styles.row}>
-                  <Text style={styles.date}>
-                    {DateTime.fromJSDate(expense.date).toFormat("dd/LL/yy")}
-                  </Text>
-                  <Text numberOfLines={1} style={styles.desc}>
-                    {expense.desc || expense.cat}
-                  </Text>
-                  <Text style={styles.amount}>{toEuro(expense.amount)}</Text>
-                </View>
-              </TouchableNativeFeedback>
-            )}
-          />
+          <ScrollView>
+            <List>{keys(expensesGroupedByDay).map(renderDailyExpenses)}</List>
+          </ScrollView>
         </Tab>
         <Tab
           heading="Monthly"
@@ -84,8 +130,8 @@ const ExpenseList: NavigationStackScreenComponent = props => {
       </Tabs>
       <Footer>
         <FooterTab>
-          <Button light onPress={() => navigate("ExpenseEdit")}>
-            <Icon type="MaterialIcons" name="add" />
+          <Button onPress={() => navigate("ExpenseEdit")}>
+            <Icon type="MaterialIcons" name="add" style={styles.addIcon} />
           </Button>
         </FooterTab>
       </Footer>
@@ -94,18 +140,16 @@ const ExpenseList: NavigationStackScreenComponent = props => {
 }
 
 const styles = StyleSheet.create({
-  row: {
-    paddingHorizontal: 10,
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "#efefef",
-    display: "flex",
-    flexDirection: "row",
-  },
-  date: {color: "#b0b0b0", paddingRight: 10},
-  desc: {flex: 1},
-  amount: {fontStyle: "italic", fontWeight: "bold", paddingLeft: 5},
-  add: {zIndex: 999, backgroundColor: "#3f51b5"},
+  headerRow: {paddingTop: 10, paddingBottom: 10, backgroundColor: "rgba(0, 0, 0, 0.05)"},
+  row: {paddingTop: 7.5, paddingBottom: 7.5},
+  date: {fontSize: 18},
+  total: {color: "rgba(0, 0, 0, 0.6)", fontStyle: "italic", fontSize: 18},
+  catView: {flex: 2},
+  catBadge: {borderRadius: 5},
+  cat: {fontSize: 14},
+  desc: {flex: 3, fontSize: 14, paddingLeft: 5},
+  amount: {color: "rgba(0, 0, 0, 0.3)", fontStyle: "italic", paddingLeft: 5, fontSize: 14},
+  addIcon: {color: "#ffffff"},
   profileIcon: {color: "rgba(0, 0, 0, 0.9)"},
   tabStyle: {backgroundColor: "#ffffff"},
   activeTabStyle: {backgroundColor: "#ffffff"},
@@ -116,6 +160,7 @@ const styles = StyleSheet.create({
 
 ExpenseList.navigationOptions = ({navigation}) => ({
   title: "Expenses",
+  headerStyle: {elevation: 0},
   headerRight: () => (
     <Button transparent rounded onPress={() => navigation.navigate("Settings")}>
       <Icon type="MaterialIcons" name="settings" style={styles.profileIcon} />
