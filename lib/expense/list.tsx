@@ -25,6 +25,7 @@ import {confirm} from "../app/alert"
 import {showToast} from "../app/toast"
 import {toEuro} from "../app/currency"
 import MonthlyList from "./monthly-list"
+import YearlyList from "./yearly-list"
 import useExpenses from "./context"
 import {Expense} from "./model"
 
@@ -129,7 +130,7 @@ const ExpenseList: NavigationStackScreenComponent = props => {
           textStyle={styles.textStyle}
           activeTextStyle={styles.activeTextStyle}
         >
-          <Text>TODO</Text>
+          <YearlyList />
         </Tab>
       </Tabs>
       <Footer>
