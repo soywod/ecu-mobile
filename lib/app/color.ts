@@ -14,8 +14,8 @@ function intToHexa(i: number) {
 
 export function genThemeStylesFromStr(str: string) {
   const bg = tinycolor(intToHexa(hashCode(str)))
-  const fg = tinycolor(bg.isLight() ? "0" : "f")
-  return {backgroundColor: bg.toHexString(), color: fg.toHexString()}
+  const fg = tinycolor(bg.isLight() ? "000" : "fff")
+  return {color: fg.toHexString(), backgroundColor: bg.toHexString()}
 }
 
 export default genThemeStylesFromStr

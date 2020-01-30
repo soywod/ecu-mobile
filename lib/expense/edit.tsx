@@ -46,7 +46,7 @@ const ExpenseEdit: NavigationStackScreenComponent<{expense?: Expense}> = props =
   }
 
   function save() {
-    $expense.update({...expense, amount: +amount, date, cat, desc})
+    $expense.update({...expense, amount: +amount, date, cat: cat.toLowerCase(), desc})
     showToast(`Expense successfully ${expense.id ? "updated" : "added"}!`)
     navigate("ExpenseList")
   }

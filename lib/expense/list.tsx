@@ -24,6 +24,7 @@ import {genThemeStylesFromStr} from "../app/color"
 import {confirm} from "../app/alert"
 import {showToast} from "../app/toast"
 import {toEuro} from "../app/currency"
+import MonthlyList from "./monthly-list"
 import useExpenses from "./context"
 import {Expense} from "./model"
 
@@ -47,13 +48,37 @@ const ExpenseList: NavigationStackScreenComponent = props => {
     }
   }
 
-  const expensesGroupedByDay = groupBy(
-    e => DateTime.fromJSDate(e.date).toFormat("dd/LL/yy"),
-    expenses,
-  )
+  function renderExpense(expense: Expense) {
+    const {color, backgroundColor} = genThemeStylesFromStr(expense.cat || "")
+
+    return (
+      <ListItem
+        key={expense.id}
+        delayPressIn={50}
+        delayPressOut={0}
+        onPress={editExpense(expense)}
+        onLongPress={deleteExpense(expense.id)}
+        style={styles.row}
+      >
+        <Text numberOfLines={1} style={styles.desc}>
+          {expense.desc}
+        </Text>
+        <View style={styles.catView}>
+          {expense.cat ? (
+            <Badge style={{...styles.catBadge, backgroundColor}}>
+              <Text numberOfLines={1} style={{...styles.cat, color}}>
+                {expense.cat}
+              </Text>
+            </Badge>
+          ) : null}
+        </View>
+        <Text style={styles.amount}>{toEuro(expense.amount)}</Text>
+      </ListItem>
+    )
+  }
 
   function renderDailyExpenses(date: string) {
-    const expenses = expensesGroupedByDay[date]
+    const expenses = dailyExpenses[date]
 
     return (
       <Fragment key={date}>
@@ -67,33 +92,12 @@ const ExpenseList: NavigationStackScreenComponent = props => {
             </Text>
           </Right>
         </ListItem>
-        {expenses.map(expense => (
-          <ListItem
-            key={expense.id}
-            delayPressIn={50}
-            delayPressOut={0}
-            onPress={editExpense(expense)}
-            onLongPress={deleteExpense(expense.id)}
-            style={styles.row}
-          >
-            <Text numberOfLines={1} style={styles.desc}>
-              {expense.desc}
-            </Text>
-            <View style={styles.catView}>
-              {expense.cat ? (
-                <Badge style={{...styles.catBadge, ...genThemeStylesFromStr(expense.cat)}}>
-                  <Text numberOfLines={1} style={styles.cat}>
-                    {expense.cat.toLowerCase()}
-                  </Text>
-                </Badge>
-              ) : null}
-            </View>
-            <Text style={styles.amount}>{toEuro(expense.amount)}</Text>
-          </ListItem>
-        ))}
+        {expenses.map(renderExpense)}
       </Fragment>
     )
   }
+
+  const dailyExpenses = groupBy(e => DateTime.fromJSDate(e.date).toFormat("dd/LL/yy"), expenses)
 
   return (
     <Container>
@@ -106,7 +110,7 @@ const ExpenseList: NavigationStackScreenComponent = props => {
           activeTextStyle={styles.activeTextStyle}
         >
           <ScrollView>
-            <List>{keys(expensesGroupedByDay).map(renderDailyExpenses)}</List>
+            <List>{keys(dailyExpenses).map(renderDailyExpenses)}</List>
           </ScrollView>
         </Tab>
         <Tab
@@ -116,7 +120,7 @@ const ExpenseList: NavigationStackScreenComponent = props => {
           textStyle={styles.textStyle}
           activeTextStyle={styles.activeTextStyle}
         >
-          <Text>TODO</Text>
+          <MonthlyList />
         </Tab>
         <Tab
           heading="Yearly"
