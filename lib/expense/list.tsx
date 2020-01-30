@@ -1,7 +1,7 @@
 import React from "react"
 import {TouchableNativeFeedback, FlatList, StyleSheet} from "react-native"
-import {Button, Container, Content, Icon, Text, View, Footer, FooterTab} from "native-base"
 import {NavigationStackScreenComponent} from "react-navigation-stack"
+import {Button, Container, Footer, FooterTab, Icon, Tab, Tabs, Text, View} from "native-base"
 import {DateTime} from "luxon"
 
 import {confirm} from "../app/alert"
@@ -32,30 +32,56 @@ const ExpenseList: NavigationStackScreenComponent = props => {
 
   return (
     <Container>
-      <Content>
-        <FlatList
-          data={expenses}
-          keyExtractor={e => e.id}
-          renderItem={({item: expense}) => (
-            <TouchableNativeFeedback
-              delayPressIn={0}
-              delayPressOut={0}
-              onPress={editExpense(expense)}
-              onLongPress={deleteExpense(expense.id)}
-            >
-              <View style={styles.row}>
-                <Text style={styles.date}>
-                  {DateTime.fromJSDate(expense.date).toFormat("dd/LL/yy")}
-                </Text>
-                <Text numberOfLines={1} style={styles.desc}>
-                  {expense.desc || expense.cat}
-                </Text>
-                <Text style={styles.amount}>{toEuro(expense.amount)}</Text>
-              </View>
-            </TouchableNativeFeedback>
-          )}
-        />
-      </Content>
+      <Tabs tabBarUnderlineStyle={styles.tabBarUnderlineStyle}>
+        <Tab
+          heading="Daily"
+          tabStyle={styles.tabStyle}
+          activeTabStyle={styles.activeTabStyle}
+          textStyle={styles.textStyle}
+          activeTextStyle={styles.activeTextStyle}
+        >
+          <FlatList
+            data={expenses}
+            keyExtractor={e => e.id}
+            renderItem={({item: expense}) => (
+              <TouchableNativeFeedback
+                delayPressIn={0}
+                delayPressOut={0}
+                onPress={editExpense(expense)}
+                onLongPress={deleteExpense(expense.id)}
+              >
+                <View style={styles.row}>
+                  <Text style={styles.date}>
+                    {DateTime.fromJSDate(expense.date).toFormat("dd/LL/yy")}
+                  </Text>
+                  <Text numberOfLines={1} style={styles.desc}>
+                    {expense.desc || expense.cat}
+                  </Text>
+                  <Text style={styles.amount}>{toEuro(expense.amount)}</Text>
+                </View>
+              </TouchableNativeFeedback>
+            )}
+          />
+        </Tab>
+        <Tab
+          heading="Monthly"
+          tabStyle={styles.tabStyle}
+          activeTabStyle={styles.activeTabStyle}
+          textStyle={styles.textStyle}
+          activeTextStyle={styles.activeTextStyle}
+        >
+          <Text>TODO</Text>
+        </Tab>
+        <Tab
+          heading="Yearly"
+          tabStyle={styles.tabStyle}
+          activeTabStyle={styles.activeTabStyle}
+          textStyle={styles.textStyle}
+          activeTextStyle={styles.activeTextStyle}
+        >
+          <Text>TODO</Text>
+        </Tab>
+      </Tabs>
       <Footer>
         <FooterTab>
           <Button light onPress={() => navigate("ExpenseEdit")}>
@@ -76,31 +102,22 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "row",
   },
-  date: {
-    color: "#b0b0b0",
-    paddingRight: 10,
-  },
-  desc: {
-    flex: 1,
-  },
-  amount: {
-    fontStyle: "italic",
-    fontWeight: "bold",
-    paddingLeft: 5,
-  },
-  add: {
-    zIndex: 999,
-    backgroundColor: "#3f51b5",
-  },
-  profileIcon: {
-    color: "rgba(0, 0, 0, 0.9)",
-  },
+  date: {color: "#b0b0b0", paddingRight: 10},
+  desc: {flex: 1},
+  amount: {fontStyle: "italic", fontWeight: "bold", paddingLeft: 5},
+  add: {zIndex: 999, backgroundColor: "#3f51b5"},
+  profileIcon: {color: "rgba(0, 0, 0, 0.9)"},
+  tabStyle: {backgroundColor: "#ffffff"},
+  activeTabStyle: {backgroundColor: "#ffffff"},
+  tabBarUnderlineStyle: {backgroundColor: "#3f51b5"},
+  textStyle: {color: "rgba(0, 0, 0, 0.5)"},
+  activeTextStyle: {color: "rgba(0, 0, 0, 0.9)"},
 })
 
 ExpenseList.navigationOptions = ({navigation}) => ({
-  title: "List",
+  title: "Expenses",
   headerRight: () => (
-    <Button transparent onPress={() => navigation.navigate("Settings")}>
+    <Button transparent rounded onPress={() => navigation.navigate("Settings")}>
       <Icon type="MaterialIcons" name="settings" style={styles.profileIcon} />
     </Button>
   ),
