@@ -20,7 +20,7 @@ import {DateTime} from "luxon"
 import groupBy from "lodash/fp/groupBy"
 import keys from "lodash/fp/keys"
 
-import strToColor from "../app/str-to-color"
+import {genThemeStylesFromStr} from "../app/color"
 import {confirm} from "../app/alert"
 import {showToast} from "../app/toast"
 import {toEuro} from "../app/currency"
@@ -76,18 +76,18 @@ const ExpenseList: NavigationStackScreenComponent = props => {
             onLongPress={deleteExpense(expense.id)}
             style={styles.row}
           >
+            <Text numberOfLines={1} style={styles.desc}>
+              {expense.desc}
+            </Text>
             <View style={styles.catView}>
               {expense.cat ? (
-                <Badge style={{...styles.catBadge, backgroundColor: strToColor(expense.cat)}}>
+                <Badge style={{...styles.catBadge, ...genThemeStylesFromStr(expense.cat)}}>
                   <Text numberOfLines={1} style={styles.cat}>
                     {expense.cat.toLowerCase()}
                   </Text>
                 </Badge>
               ) : null}
             </View>
-            <Text numberOfLines={1} style={styles.desc}>
-              {expense.desc}
-            </Text>
             <Text style={styles.amount}>{toEuro(expense.amount)}</Text>
           </ListItem>
         ))}
@@ -140,15 +140,21 @@ const ExpenseList: NavigationStackScreenComponent = props => {
 }
 
 const styles = StyleSheet.create({
-  headerRow: {paddingTop: 10, paddingBottom: 10, backgroundColor: "rgba(0, 0, 0, 0.05)"},
-  row: {paddingTop: 7.5, paddingBottom: 7.5},
-  date: {fontSize: 18},
-  total: {color: "rgba(0, 0, 0, 0.6)", fontStyle: "italic", fontSize: 18},
+  headerRow: {
+    paddingTop: 10,
+    paddingRight: 10,
+    paddingBottom: 10,
+    paddingLeft: 10,
+    backgroundColor: "rgba(0, 0, 0, 0.05)",
+  },
+  row: {paddingTop: 7.5, paddingRight: 10, paddingBottom: 7.5, paddingLeft: 10, marginLeft: 0},
+  date: {color: "rgba(0, 0, 0, 0.9)", fontSize: 18},
+  total: {color: "rgba(0, 0, 0, 0.9)", fontStyle: "italic", fontSize: 18},
   catView: {flex: 2},
   catBadge: {borderRadius: 5},
   cat: {fontSize: 14},
-  desc: {flex: 3, fontSize: 14, paddingLeft: 5},
-  amount: {color: "rgba(0, 0, 0, 0.3)", fontStyle: "italic", paddingLeft: 5, fontSize: 14},
+  desc: {color: "rgba(0, 0, 0, 0.9)", flex: 3, fontSize: 14, paddingLeft: 5},
+  amount: {color: "rgba(0, 0, 0, 0.25)", fontStyle: "italic", paddingLeft: 5, fontSize: 14},
   addIcon: {color: "#ffffff"},
   profileIcon: {color: "rgba(0, 0, 0, 0.9)"},
   tabStyle: {backgroundColor: "#ffffff"},

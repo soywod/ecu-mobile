@@ -1,4 +1,5 @@
 // Sources: https://stackoverflow.com/questions/3426404/create-a-hexadecimal-colour-based-on-a-string-with-javascript
+import tinycolor from "tinycolor2"
 
 function hashCode(str: string) {
   let hash = 0
@@ -11,8 +12,10 @@ function intToHexa(i: number) {
   return "00000".substring(0, 6 - c.length) + c
 }
 
-export function strToColor(str: string) {
-  return "#" + intToHexa(hashCode(str))
+export function genThemeStylesFromStr(str: string) {
+  const bg = tinycolor(intToHexa(hashCode(str)))
+  const fg = tinycolor(bg.isLight() ? "0" : "f")
+  return {backgroundColor: bg.toHexString(), color: fg.toHexString()}
 }
 
-export default strToColor
+export default genThemeStylesFromStr
