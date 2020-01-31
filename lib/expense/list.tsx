@@ -17,10 +17,10 @@ const ExpenseList: NavigationStackScreenComponent = props => {
           <DailyList {...props} />
         </Tab>
         <Tab heading="Monthly" {...tabStyles}>
-          <MonthlyList />
+          <MonthlyList {...props} />
         </Tab>
         <Tab heading="Yearly" {...tabStyles}>
-          <YearlyList />
+          <YearlyList {...props} />
         </Tab>
       </Tabs>
       <Footer>

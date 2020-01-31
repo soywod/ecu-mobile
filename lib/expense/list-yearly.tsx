@@ -1,5 +1,6 @@
-import React, {FC, Fragment} from "react"
+import React, {Fragment} from "react"
 import {ScrollView, StyleSheet} from "react-native"
+import {NavigationStackScreenComponent} from "react-navigation-stack"
 import {Left, List, ListItem, Right, Text} from "native-base"
 import {DateTime} from "luxon"
 import groupBy from "lodash/fp/groupBy"
@@ -18,8 +19,15 @@ type YearlyExpenses = {
   }
 }
 
-const YearlyExpenseList: FC = () => {
+const YearlyExpenseList: NavigationStackScreenComponent = props => {
   const {expenses} = useExpenses()
+  const {navigate} = props.navigation
+
+  function showMonthlyList(year: string, month: string) {
+    return () => {
+      navigate("ExpenseListMonthly", {year, month})
+    }
+  }
 
   function renderExpensesByYear(year: string) {
     const expenses = yearlyExpenses[year]
@@ -51,7 +59,13 @@ const YearlyExpenseList: FC = () => {
     const expenses = yearlyExpenses[year][month]
 
     return (
-      <ListItem key={year + month} style={styles.row}>
+      <ListItem
+        key={year + month}
+        delayPressIn={0}
+        delayPressOut={0}
+        onPress={showMonthlyList(year, month)}
+        style={styles.row}
+      >
         <Left>
           <Text style={styles.cat}>{month}</Text>
         </Left>

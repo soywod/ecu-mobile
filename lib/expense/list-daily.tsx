@@ -1,10 +1,13 @@
 import React, {Fragment} from "react"
 import {View, ScrollView, StyleSheet} from "react-native"
 import {NavigationStackScreenComponent} from "react-navigation-stack"
-import {Badge, Left, List, ListItem, Right, Text} from "native-base"
+import {Badge, Container, Content, Left, List, ListItem, Right, Text} from "native-base"
 import {DateTime} from "luxon"
+import filter from "lodash/fp/filter"
 import groupBy from "lodash/fp/groupBy"
 import keys from "lodash/fp/keys"
+import pickBy from "lodash/fp/pickBy"
+import pipe from "lodash/fp/pipe"
 
 import {genThemeStylesFromStr} from "../app/color"
 import {confirm} from "../app/alert"
@@ -13,9 +16,14 @@ import {toEuro} from "../app/currency"
 import useExpenses from "./context"
 import {Expense} from "./model"
 
-const DailyExpenseList: NavigationStackScreenComponent = props => {
+type DailyExpenses = {
+  [date: string]: Expense[]
+}
+
+const DailyExpenseListView: NavigationStackScreenComponent = props => {
+  const {navigate, state} = props.navigation
+  const {params = {}} = state
   const {expenses, ...$expense} = useExpenses()
-  const {navigate} = props.navigation
 
   function editExpense(expense: Expense) {
     return () => {
@@ -39,7 +47,7 @@ const DailyExpenseList: NavigationStackScreenComponent = props => {
     return (
       <ListItem
         key={expense.id}
-        delayPressIn={50}
+        delayPressIn={0}
         delayPressOut={0}
         onPress={editExpense(expense)}
         onLongPress={deleteExpense(expense.id)}
@@ -82,13 +90,37 @@ const DailyExpenseList: NavigationStackScreenComponent = props => {
     )
   }
 
-  const dailyExpenses = groupBy(e => DateTime.fromJSDate(e.date).toFormat("dd/LL/yy"), expenses)
+  const day = (expense: Expense) => DateTime.fromJSDate(expense.date).toFormat("dd/LL/yy")
+
+  const date = (_: Expense[], date: string) => {
+    if (!params.date || !params.cat) return true
+    return params.date === DateTime.fromFormat(date, "dd/LL/yy").toFormat("LLLL yyyy")
+  }
+
+  const cat = (expense: Expense) => {
+    if (params.cat === undefined) return true
+    return expense.cat === params.cat
+  }
+
+  const dailyExpenses: DailyExpenses = pipe([filter(cat), groupBy(day), pickBy(date)])(expenses)
 
   return (
     <ScrollView>
       <List>{keys(dailyExpenses).map(renderDailyExpenses)}</List>
     </ScrollView>
   )
+}
+
+export const DailyExpenseListScreen: NavigationStackScreenComponent = props => (
+  <Container>
+    <Content>
+      <DailyExpenseListView {...props} />
+    </Content>
+  </Container>
+)
+
+DailyExpenseListScreen.navigationOptions = {
+  title: "Daily expenses",
 }
 
 const styles = StyleSheet.create({
@@ -109,4 +141,4 @@ const styles = StyleSheet.create({
   amount: {color: "rgba(0, 0, 0, 0.25)", fontStyle: "italic", paddingLeft: 5, fontSize: 14},
 })
 
-export default DailyExpenseList
+export default DailyExpenseListView

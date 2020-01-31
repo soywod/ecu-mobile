@@ -124,14 +124,13 @@ const ExpenseEdit: NavigationStackScreenComponent<{expense?: Expense}> = props =
       </Content>
       <Footer>
         <FooterTab>
-          {(expense.id && (
+          {expense.id ? (
             <Button danger onPress={_delete}>
               <Icon type="FontAwesome" name="trash-o" style={styles.btn} />
             </Button>
-          )) ||
-            null}
-          <Button onPress={save}>
-            <Icon type="MaterialIcons" name="save" style={styles.btn} />
+          ) : null}
+          <Button success onPress={save}>
+            <Icon type="MaterialIcons" name="check" style={styles.btn} />
           </Button>
         </FooterTab>
       </Footer>
@@ -144,23 +143,11 @@ ExpenseEdit.navigationOptions = {
 }
 
 const styles = StyleSheet.create({
-  form: {
-    flex: 1,
-  },
-  input: {
-    fontSize: 18,
-    paddingLeft: 10,
-  },
-  placeholder: {
-    fontSize: 18,
-    color: "#b0b0b0",
-  },
-  btn: {
-    color: "#ffffff",
-  },
-  pickerItem: {
-    fontSize: 18,
-  },
+  form: {flex: 1},
+  input: {fontSize: 18, paddingLeft: 10},
+  placeholder: {fontSize: 18, color: "#b0b0b0"},
+  btn: {color: "#ffffff"},
+  pickerItem: {fontSize: 18},
 })
 
 export default ExpenseEdit
