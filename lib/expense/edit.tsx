@@ -61,7 +61,7 @@ const ExpenseEdit: NavigationStackScreenComponent<{expense?: Expense}> = props =
 
   return (
     <Container>
-      <Content padder>
+      <Content>
         <Form>
           <Item>
             <Icon type="MaterialIcons" name="euro-symbol" />
@@ -74,7 +74,7 @@ const ExpenseEdit: NavigationStackScreenComponent<{expense?: Expense}> = props =
               style={styles.input}
             />
           </Item>
-          <Item>
+          <Item style={styles.datePicker}>
             <Icon type="MaterialCommunityIcons" name="calendar-month" />
             <DatePicker
               placeHolderText={formatDate(date)}
@@ -95,7 +95,7 @@ const ExpenseEdit: NavigationStackScreenComponent<{expense?: Expense}> = props =
             />
             {cat === "" ? (
               <Picker
-                mode="dialog"
+                mode="dropdown"
                 iosIcon={<Icon name="arrow-down" style={styles.placeholder} />}
                 placeholder="Category"
                 placeholderStyle={styles.placeholder}
@@ -138,16 +138,17 @@ const ExpenseEdit: NavigationStackScreenComponent<{expense?: Expense}> = props =
   )
 }
 
-ExpenseEdit.navigationOptions = {
-  title: "Edit",
-}
+ExpenseEdit.navigationOptions = props => ({
+  title: props.navigation.state.params ? "Edit expense" : "Add expense",
+})
 
 const styles = StyleSheet.create({
   form: {flex: 1},
-  input: {fontSize: 18, paddingLeft: 10},
-  placeholder: {fontSize: 18, color: "#b0b0b0"},
+  datePicker: {paddingTop: 5, paddingBottom: 5},
+  input: {fontSize: 16, paddingLeft: 10},
+  placeholder: {fontSize: 16, color: "#b0b0b0"},
   btn: {color: "#ffffff"},
-  pickerItem: {fontSize: 18},
+  pickerItem: {fontSize: 16},
 })
 
 export default ExpenseEdit
