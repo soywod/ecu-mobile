@@ -9,6 +9,7 @@ export function showToast(text: string, type?: "danger" | "success" | "warning")
     style: {bottom: 0, height: 55, opacity: 0.9},
     buttonStyle: {backgroundColor: "#ffffff"},
     buttonTextStyle: {color: "#000000"},
+    duration: 2000,
   })
 }
 

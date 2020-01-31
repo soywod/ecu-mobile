@@ -47,7 +47,7 @@ const DailyExpenseListView: NavigationStackScreenComponent = props => {
     return (
       <ListItem
         key={expense.id}
-        delayPressIn={0}
+        delayPressIn={50}
         delayPressOut={0}
         onPress={editExpense(expense)}
         onLongPress={deleteExpense(expense.id)}

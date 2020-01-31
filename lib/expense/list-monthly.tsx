@@ -65,7 +65,7 @@ const MonthlyExpenseListView: NavigationStackScreenComponent = props => {
     return (
       <ListItem
         key={date + cat}
-        delayPressIn={0}
+        delayPressIn={50}
         delayPressOut={0}
         onPress={showDailyList(date, cat)}
         style={styles.row}

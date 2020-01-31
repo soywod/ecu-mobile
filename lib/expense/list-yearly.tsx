@@ -61,7 +61,7 @@ const YearlyExpenseList: NavigationStackScreenComponent = props => {
     return (
       <ListItem
         key={year + month}
-        delayPressIn={0}
+        delayPressIn={50}
         delayPressOut={0}
         onPress={showMonthlyList(year, month)}
         style={styles.row}
