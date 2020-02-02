@@ -6,7 +6,6 @@ import {DateTime} from "luxon"
 import filter from "lodash/fp/filter"
 import groupBy from "lodash/fp/groupBy"
 import keys from "lodash/fp/keys"
-import pickBy from "lodash/fp/pickBy"
 import pipe from "lodash/fp/pipe"
 
 import {genThemeStylesFromStr} from "../app/color"
@@ -53,9 +52,6 @@ const DailyExpenseListView: NavigationStackScreenComponent = props => {
         onLongPress={deleteExpense(expense.id)}
         style={styles.row}
       >
-        <Text numberOfLines={1} style={styles.desc}>
-          {expense.desc}
-        </Text>
         <View style={styles.catView}>
           {expense.cat ? (
             <Badge style={{...styles.catBadge, backgroundColor}}>
@@ -65,6 +61,9 @@ const DailyExpenseListView: NavigationStackScreenComponent = props => {
             </Badge>
           ) : null}
         </View>
+        <Text numberOfLines={1} style={styles.desc}>
+          {expense.desc}
+        </Text>
         <Text style={styles.amount}>{toEuro(expense.amount)}</Text>
       </ListItem>
     )
@@ -90,23 +89,39 @@ const DailyExpenseListView: NavigationStackScreenComponent = props => {
     )
   }
 
-  const day = (expense: Expense) => DateTime.fromJSDate(expense.date).toFormat("dd/LL/yy")
-
-  const date = (_: Expense[], date: string) => {
-    if (!params.date || !params.cat) return true
-    return params.date === DateTime.fromFormat(date, "dd/LL/yy").toFormat("LLLL yyyy")
-  }
-
-  const cat = (expense: Expense) => {
+  const filterCat = (expense: Expense) => {
     if (params.cat === undefined) return true
     return expense.cat === params.cat
   }
 
-  const dailyExpenses: DailyExpenses = pipe([filter(cat), groupBy(day), pickBy(date)])(expenses)
+  const filterDate = (expense: Expense) => {
+    if (!params.date) return true
+    return params.date === DateTime.fromJSDate(expense.date).toFormat("LLLL yyyy")
+  }
+
+  const groupDays = (expense: Expense) => DateTime.fromJSDate(expense.date).toFormat("dd/LL/yy")
+
+  const sortDateDesc = (a: string, b: string) => {
+    const dateA = DateTime.fromFormat(a, "dd/LL/yy")
+    const dateB = DateTime.fromFormat(b, "dd/LL/yy")
+    if (dateA > dateB) return -1
+    if (dateA < dateB) return 1
+    return 0
+  }
+
+  const dailyExpenses: DailyExpenses = pipe([
+    filter(filterCat),
+    filter(filterDate),
+    groupBy(groupDays),
+  ])(expenses)
 
   return (
     <ScrollView>
-      <List>{keys(dailyExpenses).map(renderDailyExpenses)}</List>
+      <List>
+        {keys(dailyExpenses)
+          .sort(sortDateDesc)
+          .map(renderDailyExpenses)}
+      </List>
     </ScrollView>
   )
 }
@@ -138,7 +153,14 @@ const styles = StyleSheet.create({
   catBadge: {borderRadius: 5},
   cat: {fontSize: 14},
   desc: {color: "rgba(0, 0, 0, 0.9)", flex: 3, fontSize: 14, paddingLeft: 5},
-  amount: {color: "rgba(0, 0, 0, 0.25)", fontStyle: "italic", paddingLeft: 5, fontSize: 14},
+  amount: {
+    flex: 1,
+    textAlign: "right",
+    color: "rgba(0, 0, 0, 0.25)",
+    fontStyle: "italic",
+    paddingLeft: 5,
+    fontSize: 14,
+  },
 })
 
 export default DailyExpenseListView

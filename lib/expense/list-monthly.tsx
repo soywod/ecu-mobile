@@ -35,13 +35,21 @@ const MonthlyExpenseListView: NavigationStackScreenComponent = props => {
   function renderExpensesByDate(date: string) {
     const expenses = monthlyExpenses[date]
 
+    const sortAmountDesc = (catA: string, catB: string) => {
+      const amountA = expenses[catA].reduce((total, {amount}) => total + amount, 0)
+      const amountB = expenses[catB].reduce((total, {amount}) => total + amount, 0)
+      if (amountA > amountB) return -1
+      if (amountA < amountB) return 1
+      return 0
+    }
+
     return (
       <Fragment key={date}>
         <ListItem itemHeader style={styles.headerRow}>
           <Left>
             <Text style={styles.date}>{date}</Text>
           </Left>
-          <Right>
+          <Right style={styles.totalContainer}>
             <Text style={styles.total}>
               {toEuro(
                 values(expenses).reduce(
@@ -53,7 +61,9 @@ const MonthlyExpenseListView: NavigationStackScreenComponent = props => {
             </Text>
           </Right>
         </ListItem>
-        {keys(expenses).map(cat => renderExpensesByCat(date, cat))}
+        {keys(expenses)
+          .sort(sortAmountDesc)
+          .map(cat => renderExpensesByCat(date, cat))}
       </Fragment>
     )
   }
@@ -84,24 +94,36 @@ const MonthlyExpenseListView: NavigationStackScreenComponent = props => {
     )
   }
 
-  const date = (expense: Expense) => {
+  const filterDate = (expense: Expense) => {
     if (!params.month || !params.year) return true
     const expenseDate = DateTime.fromJSDate(expense.date)
-    const paramsDate = DateTime.fromFormat(`${params.month} ${params.year}`, "LLLL yyyyy")
+    const paramsDate = DateTime.fromFormat(`${params.month} ${params.year}`, "LLLL yyyy")
     return expenseDate.toFormat("LLyy") === paramsDate.toFormat("LLyy")
   }
 
-  const month = (expense: Expense) => DateTime.fromJSDate(expense.date).toFormat("LLLL yyyy")
+  const groupMonth = (expense: Expense) => DateTime.fromJSDate(expense.date).toFormat("LLLL yyyy")
+
+  const sortDateDesc = (a: string, b: string) => {
+    const dateA = DateTime.fromFormat(a, "LLLL yyyy")
+    const dateB = DateTime.fromFormat(b, "LLLL yyyy")
+    if (dateA > dateB) return -1
+    if (dateA < dateB) return 1
+    return 0
+  }
 
   const monthlyExpenses: MonthlyExpenses = pipe([
-    filter(date),
-    groupBy(month),
+    filter(filterDate),
+    groupBy(groupMonth),
     mapValues(groupBy("cat")),
   ])(expenses)
 
   return (
     <ScrollView>
-      <List>{keys(monthlyExpenses).map(renderExpensesByDate)}</List>
+      <List>
+        {keys(monthlyExpenses)
+          .sort(sortDateDesc)
+          .map(renderExpensesByDate)}
+      </List>
     </ScrollView>
   )
 }
@@ -128,6 +150,7 @@ const styles = StyleSheet.create({
   },
   row: {paddingTop: 7.5, paddingRight: 10, paddingBottom: 7.5, paddingLeft: 10, marginLeft: 0},
   date: {color: "rgba(0, 0, 0, 0.9)", fontSize: 18},
+  totalContainer: {flex: 1},
   total: {color: "rgba(0, 0, 0, 0.9)", fontStyle: "italic", fontSize: 18},
   catBadge: {borderRadius: 5},
   cat: {fontSize: 14},

@@ -5,7 +5,6 @@ import {DateTime} from "luxon"
 import compact from "lodash/fp/compact"
 import map from "lodash/fp/map"
 import pipe from "lodash/fp/pipe"
-import sortBy from "lodash/fp/sortBy"
 import uniq from "lodash/fp/uniq"
 
 import {
@@ -31,11 +30,11 @@ const ExpenseEdit: NavigationStackScreenComponent<{expense?: Expense}> = props =
   const {navigate, state} = props.navigation
   const expense = (state.params && state.params.expense) || emptyExpense
   const {expenses, ...$expense} = useExpenses()
-  const cats: string[] = pipe([map("cat"), uniq, compact, sortBy("desc")])(expenses)
   const [amount, setAmount] = useState(expense.amount ? expense.amount.toString() : "")
   const [date, setDate] = useState(expense.date)
   const [cat, setCat] = useState(expense.cat || "")
   const [desc, setDesc] = useState(expense.desc || "")
+  const cats: string[] = pipe([map("cat"), uniq, compact])(expenses)
 
   function formatDate(date: Date) {
     return DateTime.fromJSDate(date).toFormat("dd/LL/yyyy")
@@ -104,7 +103,7 @@ const ExpenseEdit: NavigationStackScreenComponent<{expense?: Expense}> = props =
                 onValueChange={cat => setCat(cat)}
               >
                 <Picker.Item label="--" value="" color="#b0b0b0" />
-                {cats.map(cat => (
+                {cats.sort().map(cat => (
                   <Picker.Item key={cat} label={cat} value={cat} />
                 ))}
               </Picker>
