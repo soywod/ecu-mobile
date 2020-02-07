@@ -1,25 +1,12 @@
 import React, {useState} from "react"
 import {NativeSyntheticEvent, TextInputChangeEventData, StyleSheet} from "react-native"
 import {NavigationStackScreenComponent} from "react-navigation-stack"
+import {Container, Fab, Content, DatePicker, Form, Icon, Input, Item, Picker} from "native-base"
 import {DateTime} from "luxon"
 import compact from "lodash/fp/compact"
 import map from "lodash/fp/map"
 import pipe from "lodash/fp/pipe"
 import uniq from "lodash/fp/uniq"
-
-import {
-  Button,
-  Container,
-  Content,
-  DatePicker,
-  Footer,
-  FooterTab,
-  Form,
-  Icon,
-  Input,
-  Item,
-  Picker,
-} from "native-base"
 
 import {confirm} from "../app/alert"
 import {showToast} from "../app/toast"
@@ -121,18 +108,14 @@ const ExpenseEdit: NavigationStackScreenComponent<{expense?: Expense}> = props =
           </Item>
         </Form>
       </Content>
-      <Footer>
-        <FooterTab>
-          {expense.id ? (
-            <Button danger onPress={_delete}>
-              <Icon type="FontAwesome" name="trash-o" style={styles.btn} />
-            </Button>
-          ) : null}
-          <Button success onPress={save}>
-            <Icon type="MaterialIcons" name="check" style={styles.btn} />
-          </Button>
-        </FooterTab>
-      </Footer>
+      {expense.id ? (
+        <Fab position="bottomLeft" onPress={_delete} style={styles.deleteBtn}>
+          <Icon type="FontAwesome" name="trash-o" style={styles.btn} />
+        </Fab>
+      ) : null}
+      <Fab position="bottomRight" onPress={save} style={styles.saveBtn}>
+        <Icon type="MaterialIcons" name="check" style={styles.btn} />
+      </Fab>
     </Container>
   )
 }
@@ -146,6 +129,8 @@ const styles = StyleSheet.create({
   datePicker: {paddingTop: 5, paddingBottom: 5},
   input: {fontSize: 16, paddingLeft: 10},
   placeholder: {fontSize: 16, color: "#b0b0b0"},
+  saveBtn: {backgroundColor: "#5cb85c"},
+  deleteBtn: {backgroundColor: "#d9534f"},
   btn: {color: "#ffffff"},
   pickerItem: {fontSize: 16},
 })

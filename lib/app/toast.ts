@@ -4,9 +4,8 @@ export function showToast(text: string, type?: "danger" | "success" | "warning")
   Toast.show({
     type,
     text,
-    position: "bottom",
-    buttonText: "OK",
-    style: {bottom: 0, height: 55, opacity: 0.9},
+    position: "top",
+    style: {top: 26},
     buttonStyle: {backgroundColor: "#ffffff"},
     buttonTextStyle: {color: "#000000"},
     duration: 2000,

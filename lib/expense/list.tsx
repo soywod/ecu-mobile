@@ -1,7 +1,7 @@
 import React from "react"
 import {StyleSheet} from "react-native"
 import {NavigationStackScreenComponent} from "react-navigation-stack"
-import {Button, Container, Footer, FooterTab, Icon, Tab, Tabs} from "native-base"
+import {Button, Fab, Container, Icon, Tab, Tabs} from "native-base"
 
 import DailyList from "./list-daily"
 import MonthlyList from "./list-monthly"
@@ -23,19 +23,16 @@ const ExpenseList: NavigationStackScreenComponent = props => {
           <YearlyList {...props} />
         </Tab>
       </Tabs>
-      <Footer>
-        <FooterTab>
-          <Button onPress={() => navigate("ExpenseEdit")}>
-            <Icon type="MaterialIcons" name="add" style={styles.addIcon} />
-          </Button>
-        </FooterTab>
-      </Footer>
+      <Fab onPress={() => navigate("ExpenseEdit")} style={styles.addBtn}>
+        <Icon type="MaterialIcons" name="add" style={styles.addIcon} />
+      </Fab>
     </Container>
   )
 }
 
 const styles = StyleSheet.create({
   tabBarUnderlineStyle: {backgroundColor: "#3f51b5"},
+  addBtn: {backgroundColor: "#3f51b5"},
   addIcon: {color: "#ffffff"},
   profileIcon: {color: "rgba(0, 0, 0, 0.9)"},
 })
