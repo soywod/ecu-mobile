@@ -1,13 +1,26 @@
-import React, {Fragment} from "react"
-import {View, ScrollView, StyleSheet} from "react-native"
+import React, {Fragment, useState} from "react"
+import {View, StyleSheet} from "react-native"
 import {NavigationStackScreenComponent} from "react-navigation-stack"
-import {Badge, Container, Content, Left, List, ListItem, Right, Text} from "native-base"
+import {
+  Badge,
+  Button,
+  Container,
+  Content,
+  Icon,
+  Left,
+  List,
+  ListItem,
+  Right,
+  Text,
+} from "native-base"
 import {DateTime} from "luxon"
 import filter from "lodash/fp/filter"
 import groupBy from "lodash/fp/groupBy"
 import keys from "lodash/fp/keys"
 import pipe from "lodash/fp/pipe"
 
+import useAsync from "../_shared/async/context"
+import ScrollView from "../_shared/async/scroll-view"
 import {genThemeStylesFromStr} from "../app/color"
 import {confirm} from "../app/alert"
 import {showToast} from "../app/toast"
@@ -22,7 +35,9 @@ type DailyExpenses = {
 const DailyExpenseListView: NavigationStackScreenComponent = props => {
   const {navigate, state} = props.navigation
   const {params = {}} = state
-  const {expenses, ...$expense} = useExpenses()
+  const [isLoading, setLoading] = useAsync()
+  const [date, setDate] = useState(DateTime.local())
+  const {expenses, ...$expense} = useExpenses(date.year, date.month)
 
   function editExpense(expense: Expense) {
     return () => {
@@ -115,14 +130,49 @@ const DailyExpenseListView: NavigationStackScreenComponent = props => {
     groupBy(groupDays),
   ])(expenses)
 
+  function changeDate(type: "minus" | "plus", val: "month" | "year") {
+    if (!isLoading) {
+      setDate(date[type]({[val]: 1}))
+      setLoading(true)
+    }
+  }
+
   return (
-    <ScrollView>
-      <List>
-        {keys(dailyExpenses)
-          .sort(sortDateDesc)
-          .map(renderDailyExpenses)}
-      </List>
-    </ScrollView>
+    <>
+      <View style={styles.filters}>
+        <Button transparent onPress={() => changeDate("minus", "month")}>
+          <Text>
+            <Icon type="FontAwesome" name="caret-left" style={styles.filterIcon} />
+          </Text>
+        </Button>
+        <Text>{date.toFormat("LLLL")}</Text>
+        <Button transparent onPress={() => changeDate("plus", "month")}>
+          <Text>
+            <Icon type="FontAwesome" name="caret-right" style={styles.filterIcon} />
+          </Text>
+        </Button>
+        <Button transparent onPress={() => changeDate("minus", "year")}>
+          <Text>
+            <Icon type="FontAwesome" name="caret-left" style={styles.filterIcon} />
+          </Text>
+        </Button>
+        <Text>{date.toFormat("yyyy")}</Text>
+        <Button transparent onPress={() => changeDate("plus", "year")}>
+          <Text>
+            <Icon type="FontAwesome" name="caret-right" style={styles.filterIcon} />
+          </Text>
+        </Button>
+      </View>
+      <ScrollView>
+        {!isLoading && (
+          <List>
+            {keys(dailyExpenses)
+              .sort(sortDateDesc)
+              .map(renderDailyExpenses)}
+          </List>
+        )}
+      </ScrollView>
+    </>
   )
 }
 
@@ -139,19 +189,42 @@ DailyExpenseListScreen.navigationOptions = {
 }
 
 const styles = StyleSheet.create({
-  headerRow: {
-    paddingTop: 10,
-    paddingRight: 10,
-    paddingBottom: 10,
-    paddingLeft: 10,
+  filters: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(0, 0, 0, 0.1)",
     backgroundColor: "rgba(0, 0, 0, 0.05)",
   },
-  row: {paddingTop: 7.5, paddingRight: 10, paddingBottom: 7.5, paddingLeft: 10, marginLeft: 0},
-  date: {color: "rgba(0, 0, 0, 0.9)", fontSize: 18},
-  total: {color: "rgba(0, 0, 0, 0.9)", fontStyle: "italic", fontSize: 18},
+  filterIcon: {
+    fontSize: 20,
+    color: "rgba(0, 0, 0, 0.9)",
+  },
+  headerRow: {
+    paddingTop: 5,
+    paddingRight: 10,
+    paddingBottom: 5,
+    marginTop: -1,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(0, 0, 0, 0.05)",
+    paddingLeft: 10,
+    backgroundColor: "rgba(0, 0, 0, 0.1)",
+  },
+  row: {
+    paddingTop: 5,
+    paddingRight: 10,
+    paddingBottom: 5,
+    paddingLeft: 10,
+    marginLeft: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(0, 0, 0, 0.05)",
+  },
+  date: {color: "rgba(0, 0, 0, 0.9)", fontSize: 15},
+  total: {color: "rgba(0, 0, 0, 0.9)", fontStyle: "italic", fontSize: 15},
   catView: {flex: 2},
-  catBadge: {borderRadius: 5},
-  cat: {fontSize: 14},
+  catBadge: {borderRadius: 5, justifyContent: "center", height: 20},
+  cat: {fontSize: 10, paddingTop: 0, paddingRight: 0, paddingBottom: 0, paddingLeft: 0},
   desc: {color: "rgba(0, 0, 0, 0.9)", flex: 3, fontSize: 14, paddingLeft: 5},
   amount: {
     flex: 1,

@@ -6,21 +6,15 @@ import {AppRegistry} from "react-native"
 import {Root} from "native-base"
 
 import Navigator from "./lib/app/navigator"
-import {AsyncContextProvider} from "./lib/async/context"
 import {AuthContextProvider} from "./lib/auth/context"
-import {ExpenseContextProvider} from "./lib/expense/context"
 import {name as appName} from "./app.json"
 
 const App: FC = () => (
-  <AsyncContextProvider>
-    <AuthContextProvider>
-      <ExpenseContextProvider>
-        <Root>
-          <Navigator />
-        </Root>
-      </ExpenseContextProvider>
-    </AuthContextProvider>
-  </AsyncContextProvider>
+  <AuthContextProvider>
+    <Root>
+      <Navigator />
+    </Root>
+  </AuthContextProvider>
 )
 
 AppRegistry.registerComponent(appName, () => App)

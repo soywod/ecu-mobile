@@ -3,27 +3,41 @@ import {Expense, emptyExpense} from "./model"
 import {DateTime} from "luxon"
 import get from "lodash/fp/get"
 
-function sortExpensesByDate(a: Expense, b: Expense) {
-  const dateA = DateTime.fromJSDate(a.date)
-  const dateB = DateTime.fromJSDate(b.date)
-  if (dateA < dateB) return 1
-  if (dateA > dateB) return -1
-  return 0
+type ExpenseChangedHandler = (expenses: Expense[]) => void
+type ExpenseChangeParams = {
+  userId: string
+  year: number
+  month?: number
 }
 
-type ExpenseChangedHandler = (expenses: Expense[]) => void
-export function onExpensesChanged(userId: string, handler: ExpenseChangedHandler) {
-  return firestore(`users/${userId}/expenses`).onSnapshot(query => {
-    const expenses: Expense[] = []
-    query.forEach(doc => {
-      if (doc.exists) {
-        const data = doc.data()
-        const date = DateTime.fromSeconds(get("date.seconds", data)).toJSDate()
-        expenses.push({...emptyExpense, ...data, date})
-      }
-    })
-    handler(expenses.sort(sortExpensesByDate))
+export function onExpensesChanged(params: ExpenseChangeParams, handler: ExpenseChangedHandler) {
+  const {userId, year, month} = params
+  const dateMin = DateTime.local().set({
+    year,
+    month,
+    day: 1,
+    hour: 0,
+    minute: 0,
+    second: 0,
+    millisecond: 0,
   })
+  const dateMax = dateMin.plus({month: 1}).minus({day: 1})
+
+  return firestore(`users/${userId}/expenses`)
+    .where("date", ">=", dateMin.toJSDate())
+    .where("date", "<=", dateMax.toJSDate())
+    .orderBy("date", "desc")
+    .onSnapshot(query => {
+      const expenses: Expense[] = []
+      query.forEach(doc => {
+        if (doc.exists) {
+          const data = doc.data()
+          const date = DateTime.fromSeconds(get("date.seconds", data)).toJSDate()
+          expenses.push({...emptyExpense, ...data, date})
+        }
+      })
+      handler(expenses)
+    })
 }
 
 export function update(userId: string, expense: Partial<Expense>, merge = true) {

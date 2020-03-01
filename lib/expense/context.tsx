@@ -1,5 +1,6 @@
-import React, {FC, createContext, useContext, useEffect, useState} from "react"
+import {useEffect, useState} from "react"
 
+import {isLoading$} from "../_shared/async/context"
 import {useAuthState} from "../auth/context"
 import {Expense} from "./model"
 import $expense from "./service"
@@ -18,36 +19,36 @@ const emptyState: ExpenseState = {
   delete: noop,
 }
 
-const ExpenseContext = createContext<ExpenseState>(emptyState)
-
-export const ExpenseContextProvider: FC = ({children}) => {
+export function useExpenses(year: number, month?: number): ExpenseState {
   const auth = useAuthState()
   const [expenses, setExpenses] = useState(emptyState.expenses)
 
-  async function update(expense: Partial<Expense>, merge = true) {
-    if (auth.initialized && auth.authenticated) {
-      await $expense.update(auth.fsUser.id, expense, merge)
-    }
-  }
-
-  async function _delete(id: string) {
-    if (auth.initialized && auth.authenticated) {
-      await $expense.delete(auth.fsUser.id, id)
-    }
-  }
-
   useEffect(() => {
-    if (!auth.initialized || !auth.authenticated) return
-    const unsub = $expense.onExpensesChanged(auth.fsUser.id, setExpenses)
-    return () => unsub()
-  }, [auth])
+    if (auth.initialized && auth.authenticated) {
+      const params = {year, month, userId: auth.fsUser.id}
+      const unsubscribe = $expense.onExpensesChanged(params, expenses => {
+        setExpenses(expenses)
+        isLoading$.next(false)
+      })
+      return () => {
+        unsubscribe()
+      }
+    }
+  }, [auth, month, year])
 
-  return (
-    <ExpenseContext.Provider value={{expenses, update, delete: _delete}}>
-      {children}
-    </ExpenseContext.Provider>
-  )
+  return {
+    expenses,
+    update: async (expense: Partial<Expense>, merge = true) => {
+      if (auth.initialized && auth.authenticated) {
+        await $expense.update(auth.fsUser.id, expense, merge)
+      }
+    },
+    delete: async (id: string) => {
+      if (auth.initialized && auth.authenticated) {
+        await $expense.delete(auth.fsUser.id, id)
+      }
+    },
+  }
 }
 
-export const useExpenses = () => useContext(ExpenseContext)
 export default useExpenses

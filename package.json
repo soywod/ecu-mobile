@@ -59,6 +59,7 @@
     "react-native-vector-icons": "^6.6.0",
     "react-navigation": "^4.0.10",
     "react-navigation-stack": "^2.0.15",
+    "rxjs": "^6.5.4",
     "tinycolor2": "^1.4.1"
   },
   "scripts": {

@@ -1,15 +1,16 @@
 import React, {useState} from "react"
 import RN, {ActivityIndicator, StyleSheet} from "react-native"
-import {Button, Container, Content, Form, Input, Item, Text, View} from "native-base"
+import {Button, Container, Content, Form, Input, Item, Text} from "native-base"
 import {NavigationStackScreenComponent} from "react-navigation-stack"
 
-import useAsync from "../async/context"
+import useAsync from "../_shared/async/context"
+import ScrollView from "../_shared/async/scroll-view"
 import {showToast} from "../app/toast"
 import useAuth from "../auth/context"
 
 const Settings: NavigationStackScreenComponent = () => {
   const {auth, ...$auth} = useAuth()
-  const {isLoading, setLoading} = useAsync()
+  const [isLoading, setLoading] = useAsync()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const isAnonymous = !auth.initialized || !auth.authenticated || auth.fsUser.type === "anonymous"
@@ -56,7 +57,7 @@ const Settings: NavigationStackScreenComponent = () => {
   return (
     <Container>
       <Content padder>
-        <View>
+        <ScrollView>
           {isAnonymous ? (
             <>
               <Text style={styles.connectHelp}>
@@ -112,7 +113,7 @@ const Settings: NavigationStackScreenComponent = () => {
               </Button>
             </>
           )}
-        </View>
+        </ScrollView>
       </Content>
     </Container>
   )
