@@ -1,4 +1,4 @@
-import React, {Fragment, useEffect, useState} from "react"
+import React, {Fragment, useState} from "react"
 import {View} from "react-native"
 import {NavigationStackScreenComponent} from "react-navigation-stack"
 import {
@@ -19,11 +19,10 @@ import groupBy from "lodash/fp/groupBy"
 import keys from "lodash/fp/keys"
 import pipe from "lodash/fp/pipe"
 
-import useAsync, {isLoading$} from "../_shared/async/context"
+import useAsync from "../_shared/async/context"
 import ScrollView from "../_shared/async/scroll-view"
 import {genThemeStylesFromStr} from "../app/color"
 import {confirm} from "../app/alert"
-import {showToast} from "../app/toast"
 import {toEuro} from "../app/currency"
 import useExpenses from "./context"
 import {Expense} from "./model"
@@ -51,8 +50,8 @@ const DailyExpenseListView: NavigationStackScreenComponent = props => {
   function deleteExpense(id: string) {
     return () => {
       confirm("Confirm", "Are you sure to delete this expense?", async () => {
+        setLoading(true)
         $expense.delete(id)
-        showToast("Expense successfully deleted!")
         navigate("ExpenseList")
       })
     }

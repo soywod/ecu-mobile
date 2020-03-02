@@ -52,7 +52,7 @@ const MonthlyExpenseListView: NavigationStackScreenComponent = props => {
   function renderExpensesByDate(date: string) {
     const expenses = monthlyExpenses[date]
 
-    const sortAmountDesc = (catA: string, catB: string) => {
+    const sortAmount = (catA: string, catB: string) => {
       const amountA = expenses[catA].reduce((total, {amount}) => total + amount, 0)
       const amountB = expenses[catB].reduce((total, {amount}) => total + amount, 0)
       if (amountA > amountB) return -1
@@ -81,7 +81,7 @@ const MonthlyExpenseListView: NavigationStackScreenComponent = props => {
           </Right>
         </ListItem>
         {keys(expenses)
-          .sort(sortAmountDesc)
+          .sort(sortAmount)
           .map(cat => renderExpensesByCat(date, cat))}
       </Fragment>
     )
