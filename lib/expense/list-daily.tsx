@@ -1,5 +1,5 @@
-import React, {Fragment, useState} from "react"
-import {View, StyleSheet} from "react-native"
+import React, {Fragment, useEffect, useState} from "react"
+import {View} from "react-native"
 import {NavigationStackScreenComponent} from "react-navigation-stack"
 import {
   Badge,
@@ -19,7 +19,7 @@ import groupBy from "lodash/fp/groupBy"
 import keys from "lodash/fp/keys"
 import pipe from "lodash/fp/pipe"
 
-import useAsync from "../_shared/async/context"
+import useAsync, {isLoading$} from "../_shared/async/context"
 import ScrollView from "../_shared/async/scroll-view"
 import {genThemeStylesFromStr} from "../app/color"
 import {confirm} from "../app/alert"
@@ -28,6 +28,8 @@ import {toEuro} from "../app/currency"
 import useExpenses from "./context"
 import {Expense} from "./model"
 
+import styles from "./list.styles"
+
 type DailyExpenses = {
   [date: string]: Expense[]
 }
@@ -35,8 +37,9 @@ type DailyExpenses = {
 const DailyExpenseListView: NavigationStackScreenComponent = props => {
   const {navigate, state} = props.navigation
   const {params = {}} = state
+  const defaultDate = params.date ? DateTime.fromFormat(params.date, "LLLL yyyy") : DateTime.local()
   const [isLoading, setLoading] = useAsync()
-  const [date, setDate] = useState(DateTime.local())
+  const [date, setDate] = useState(defaultDate)
   const {expenses, ...$expense} = useExpenses(date.year, date.month)
 
   function editExpense(expense: Expense) {
@@ -87,6 +90,12 @@ const DailyExpenseListView: NavigationStackScreenComponent = props => {
   function renderDailyExpenses(date: string) {
     const expenses = dailyExpenses[date]
 
+    const sortAmount = (e1: Expense, e2: Expense) => {
+      if (e1.amount > e2.amount) return -1
+      if (e1.amount < e2.amount) return 1
+      return 0
+    }
+
     return (
       <Fragment key={date}>
         <ListItem itemHeader style={styles.headerRow}>
@@ -99,7 +108,7 @@ const DailyExpenseListView: NavigationStackScreenComponent = props => {
             </Text>
           </Right>
         </ListItem>
-        {expenses.map(renderExpense)}
+        {expenses.sort(sortAmount).map(renderExpense)}
       </Fragment>
     )
   }
@@ -110,19 +119,11 @@ const DailyExpenseListView: NavigationStackScreenComponent = props => {
   }
 
   const filterDate = (expense: Expense) => {
-    if (!params.date) return true
+    if (params.date === undefined) return true
     return params.date === DateTime.fromJSDate(expense.date).toFormat("LLLL yyyy")
   }
 
-  const groupDays = (expense: Expense) => DateTime.fromJSDate(expense.date).toFormat("dd/LL/yy")
-
-  const sortDateDesc = (a: string, b: string) => {
-    const dateA = DateTime.fromFormat(a, "dd/LL/yy")
-    const dateB = DateTime.fromFormat(b, "dd/LL/yy")
-    if (dateA > dateB) return -1
-    if (dateA < dateB) return 1
-    return 0
-  }
+  const groupDays = (expense: Expense) => DateTime.fromJSDate(expense.date).toFormat("EEEE d")
 
   const dailyExpenses: DailyExpenses = pipe([
     filter(filterCat),
@@ -139,38 +140,34 @@ const DailyExpenseListView: NavigationStackScreenComponent = props => {
 
   return (
     <>
-      <View style={styles.filters}>
-        <Button transparent onPress={() => changeDate("minus", "month")}>
-          <Text>
-            <Icon type="FontAwesome" name="caret-left" style={styles.filterIcon} />
-          </Text>
-        </Button>
-        <Text>{date.toFormat("LLLL")}</Text>
-        <Button transparent onPress={() => changeDate("plus", "month")}>
-          <Text>
-            <Icon type="FontAwesome" name="caret-right" style={styles.filterIcon} />
-          </Text>
-        </Button>
-        <Button transparent onPress={() => changeDate("minus", "year")}>
-          <Text>
-            <Icon type="FontAwesome" name="caret-left" style={styles.filterIcon} />
-          </Text>
-        </Button>
-        <Text>{date.toFormat("yyyy")}</Text>
-        <Button transparent onPress={() => changeDate("plus", "year")}>
-          <Text>
-            <Icon type="FontAwesome" name="caret-right" style={styles.filterIcon} />
-          </Text>
-        </Button>
-      </View>
+      {!params.date && (
+        <View style={styles.filters}>
+          <Button transparent onPress={() => changeDate("minus", "month")}>
+            <Text>
+              <Icon type="FontAwesome" name="caret-left" style={styles.filterIcon} />
+            </Text>
+          </Button>
+          <Text>{date.toFormat("LLLL")}</Text>
+          <Button transparent onPress={() => changeDate("plus", "month")}>
+            <Text>
+              <Icon type="FontAwesome" name="caret-right" style={styles.filterIcon} />
+            </Text>
+          </Button>
+          <Button transparent onPress={() => changeDate("minus", "year")}>
+            <Text>
+              <Icon type="FontAwesome" name="caret-left" style={styles.filterIcon} />
+            </Text>
+          </Button>
+          <Text>{date.toFormat("yyyy")}</Text>
+          <Button transparent onPress={() => changeDate("plus", "year")}>
+            <Text>
+              <Icon type="FontAwesome" name="caret-right" style={styles.filterIcon} />
+            </Text>
+          </Button>
+        </View>
+      )}
       <ScrollView>
-        {!isLoading && (
-          <List>
-            {keys(dailyExpenses)
-              .sort(sortDateDesc)
-              .map(renderDailyExpenses)}
-          </List>
-        )}
+        {!isLoading && <List>{keys(dailyExpenses).map(renderDailyExpenses)}</List>}
       </ScrollView>
     </>
   )
@@ -187,53 +184,5 @@ export const DailyExpenseListScreen: NavigationStackScreenComponent = props => (
 DailyExpenseListScreen.navigationOptions = {
   title: "Daily expenses",
 }
-
-const styles = StyleSheet.create({
-  filters: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(0, 0, 0, 0.1)",
-    backgroundColor: "rgba(0, 0, 0, 0.05)",
-  },
-  filterIcon: {
-    fontSize: 20,
-    color: "rgba(0, 0, 0, 0.9)",
-  },
-  headerRow: {
-    paddingTop: 5,
-    paddingRight: 10,
-    paddingBottom: 5,
-    marginTop: -1,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(0, 0, 0, 0.05)",
-    paddingLeft: 10,
-    backgroundColor: "rgba(0, 0, 0, 0.1)",
-  },
-  row: {
-    paddingTop: 5,
-    paddingRight: 10,
-    paddingBottom: 5,
-    paddingLeft: 10,
-    marginLeft: 0,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(0, 0, 0, 0.05)",
-  },
-  date: {color: "rgba(0, 0, 0, 0.9)", fontSize: 15},
-  total: {color: "rgba(0, 0, 0, 0.9)", fontStyle: "italic", fontSize: 15},
-  catView: {flex: 2},
-  catBadge: {borderRadius: 5, justifyContent: "center", height: 20},
-  cat: {fontSize: 10, paddingTop: 0, paddingRight: 0, paddingBottom: 0, paddingLeft: 0},
-  desc: {color: "rgba(0, 0, 0, 0.9)", flex: 3, fontSize: 14, paddingLeft: 5},
-  amount: {
-    flex: 1,
-    textAlign: "right",
-    color: "rgba(0, 0, 0, 0.25)",
-    fontStyle: "italic",
-    paddingLeft: 5,
-    fontSize: 14,
-  },
-})
 
 export default DailyExpenseListView

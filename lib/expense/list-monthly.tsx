@@ -1,19 +1,34 @@
-import React, {Fragment} from "react"
-import {ScrollView, StyleSheet} from "react-native"
+import React, {Fragment, useState} from "react"
+import {View} from "react-native"
 import {NavigationStackScreenComponent} from "react-navigation-stack"
-import {Badge, Container, Content, Left, List, ListItem, Right, Text} from "native-base"
+import {
+  Badge,
+  Button,
+  Container,
+  Content,
+  Icon,
+  Left,
+  List,
+  ListItem,
+  Right,
+  Text,
+} from "native-base"
 import {DateTime} from "luxon"
 import filter from "lodash/fp/filter"
 import groupBy from "lodash/fp/groupBy"
 import keys from "lodash/fp/keys"
 import values from "lodash/fp/values"
 
+import useAsync from "../_shared/async/context"
+import ScrollView from "../_shared/async/scroll-view"
 import {genThemeStylesFromStr} from "../app/color"
 import {toEuro} from "../app/currency"
 import useExpenses from "./context"
 import {Expense} from "./model"
 import pipe from "lodash/fp/pipe"
 import mapValues from "lodash/fp/mapValues"
+
+import styles from "./list.styles"
 
 type MonthlyExpenses = {
   [date: string]: {
@@ -24,7 +39,9 @@ type MonthlyExpenses = {
 const MonthlyExpenseListView: NavigationStackScreenComponent = props => {
   const {navigate, state} = props.navigation
   const {params = {}} = state
-  const {expenses} = useExpenses()
+  const [isLoading, setLoading] = useAsync()
+  const [date, setDate] = useState(DateTime.local())
+  const {expenses} = useExpenses(date.year)
 
   function showDailyList(date: string, cat: string) {
     return () => {
@@ -47,7 +64,9 @@ const MonthlyExpenseListView: NavigationStackScreenComponent = props => {
       <Fragment key={date}>
         <ListItem itemHeader style={styles.headerRow}>
           <Left>
-            <Text style={styles.date}>{date}</Text>
+            <Text style={styles.date}>
+              {DateTime.fromFormat(date, "LLLL yyyy").toFormat("LLLL")}
+            </Text>
           </Left>
           <Right style={styles.totalContainer}>
             <Text style={styles.total}>
@@ -98,18 +117,10 @@ const MonthlyExpenseListView: NavigationStackScreenComponent = props => {
     if (!params.month || !params.year) return true
     const expenseDate = DateTime.fromJSDate(expense.date)
     const paramsDate = DateTime.fromFormat(`${params.month} ${params.year}`, "LLLL yyyy")
-    return expenseDate.toFormat("LLyy") === paramsDate.toFormat("LLyy")
+    return expenseDate.toFormat("LLLL yyyy") === paramsDate.toFormat("LLLL yyyy")
   }
 
   const groupMonth = (expense: Expense) => DateTime.fromJSDate(expense.date).toFormat("LLLL yyyy")
-
-  const sortDateDesc = (a: string, b: string) => {
-    const dateA = DateTime.fromFormat(a, "LLLL yyyy")
-    const dateB = DateTime.fromFormat(b, "LLLL yyyy")
-    if (dateA > dateB) return -1
-    if (dateA < dateB) return 1
-    return 0
-  }
 
   const monthlyExpenses: MonthlyExpenses = pipe([
     filter(filterDate),
@@ -117,14 +128,34 @@ const MonthlyExpenseListView: NavigationStackScreenComponent = props => {
     mapValues(groupBy("cat")),
   ])(expenses)
 
+  function changeDate(type: "minus" | "plus") {
+    if (!isLoading) {
+      setDate(date[type]({year: 1}))
+      setLoading(true)
+    }
+  }
+
   return (
-    <ScrollView>
-      <List>
-        {keys(monthlyExpenses)
-          .sort(sortDateDesc)
-          .map(renderExpensesByDate)}
-      </List>
-    </ScrollView>
+    <>
+      {!params.year && (
+        <View style={styles.filters}>
+          <Button transparent onPress={() => changeDate("minus")}>
+            <Text>
+              <Icon type="FontAwesome" name="caret-left" style={styles.filterIcon} />
+            </Text>
+          </Button>
+          <Text>{date.toFormat("yyyy")}</Text>
+          <Button transparent onPress={() => changeDate("plus")}>
+            <Text>
+              <Icon type="FontAwesome" name="caret-right" style={styles.filterIcon} />
+            </Text>
+          </Button>
+        </View>
+      )}
+      <ScrollView>
+        <List>{keys(monthlyExpenses).map(renderExpensesByDate)}</List>
+      </ScrollView>
+    </>
   )
 }
 
@@ -139,22 +170,5 @@ export const MonthlyExpenseListScreen: NavigationStackScreenComponent = props =>
 MonthlyExpenseListScreen.navigationOptions = {
   title: "Monthly expenses",
 }
-
-const styles = StyleSheet.create({
-  headerRow: {
-    paddingTop: 10,
-    paddingRight: 10,
-    paddingBottom: 10,
-    paddingLeft: 10,
-    backgroundColor: "rgba(0, 0, 0, 0.05)",
-  },
-  row: {paddingTop: 7.5, paddingRight: 10, paddingBottom: 7.5, paddingLeft: 10, marginLeft: 0},
-  date: {color: "rgba(0, 0, 0, 0.9)", fontSize: 18},
-  totalContainer: {flex: 1},
-  total: {color: "rgba(0, 0, 0, 0.9)", fontStyle: "italic", fontSize: 18},
-  catBadge: {borderRadius: 5},
-  cat: {fontSize: 14},
-  amount: {color: "rgba(0, 0, 0, 0.25)", fontStyle: "italic", paddingLeft: 5, fontSize: 14},
-})
 
 export default MonthlyExpenseListView

@@ -1,4 +1,4 @@
-import {firestore} from "../app/firebase"
+import {CollectionReference, firestore} from "../app/firebase"
 import {Expense, emptyExpense} from "./model"
 import {DateTime} from "luxon"
 import get from "lodash/fp/get"
@@ -6,13 +6,32 @@ import get from "lodash/fp/get"
 type ExpenseChangedHandler = (expenses: Expense[]) => void
 type ExpenseChangeParams = {
   userId: string
-  year: number
+  year?: number
   month?: number
 }
 
-export function onExpensesChanged(params: ExpenseChangeParams, handler: ExpenseChangedHandler) {
-  const {userId, year, month} = params
-  const dateMin = DateTime.local().set({
+function withPeriod(params: ExpenseChangeParams, col: CollectionReference) {
+  const {year, month} = params
+
+  if (year === undefined) {
+    return col
+  }
+
+  if (month === undefined) {
+    const min = DateTime.local().set({
+      year,
+      month: 0,
+      day: 1,
+      hour: 0,
+      minute: 0,
+      second: 0,
+      millisecond: 0,
+    })
+    const max = min.plus({year: 1}).minus({day: 1})
+    return col.where("date", ">=", min.toJSDate()).where("date", "<=", max.toJSDate())
+  }
+
+  const min = DateTime.local().set({
     year,
     month,
     day: 1,
@@ -21,11 +40,12 @@ export function onExpensesChanged(params: ExpenseChangeParams, handler: ExpenseC
     second: 0,
     millisecond: 0,
   })
-  const dateMax = dateMin.plus({month: 1}).minus({day: 1})
+  const max = min.plus({month: 1}).minus({day: 1})
+  return col.where("date", ">=", min.toJSDate()).where("date", "<=", max.toJSDate())
+}
 
-  return firestore(`users/${userId}/expenses`)
-    .where("date", ">=", dateMin.toJSDate())
-    .where("date", "<=", dateMax.toJSDate())
+export function onExpensesChanged(params: ExpenseChangeParams, handler: ExpenseChangedHandler) {
+  return withPeriod(params, firestore(`users/${params.userId}/expenses`))
     .orderBy("date", "desc")
     .onSnapshot(query => {
       const expenses: Expense[] = []

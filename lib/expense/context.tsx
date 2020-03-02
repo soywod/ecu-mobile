@@ -19,7 +19,7 @@ const emptyState: ExpenseState = {
   delete: noop,
 }
 
-export function useExpenses(year: number, month?: number): ExpenseState {
+export function useExpenses(year?: number, month?: number): ExpenseState {
   const auth = useAuthState()
   const [expenses, setExpenses] = useState(emptyState.expenses)
 
