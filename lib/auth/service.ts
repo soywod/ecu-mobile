@@ -1,16 +1,23 @@
 import {DateTime} from "luxon"
-import isEmpty from "lodash/fp/isEmpty"
 
 import firebase, {User as FirebaseUser, auth, firestore} from "../app/firebase"
 import {User as FirestoreUser, emptyUser} from "./model"
 
-function _register(user: FirebaseUser) {
-  return firestore("users", user.uid).set({
-    id: user.uid,
+async function createFirestoreUser(fbUser: FirebaseUser) {
+  const fsUser: FirestoreUser = {
+    id: fbUser.uid,
     type: "authenticated",
-    email: user.email,
+    email: fbUser.email || "",
+    createdAt: DateTime.utc(),
+  }
+
+  await firestore("users", fbUser.uid).set({
+    ...fsUser,
+    email: fbUser.email,
     createdAt: DateTime.utc().toJSDate(),
   })
+
+  return fsUser
 }
 
 async function signInIfNull(maybeUser: FirebaseUser | null) {
@@ -23,7 +30,7 @@ async function signInIfNull(maybeUser: FirebaseUser | null) {
 async function createUserIfNull(id: string) {
   const ref = await firestore("users", id).get()
   const maybeUser = ref.data()
-  if (!isEmpty(maybeUser)) return maybeUser as FirestoreUser
+  if (ref.exists) return maybeUser as FirestoreUser
   const user: FirestoreUser = {...emptyUser, id}
   await firestore("users", user.id).set(user)
   return user
@@ -44,10 +51,29 @@ export function onUserChanged(id: string, handler: UserChangedHandler) {
 }
 
 export async function signIn(email: string, password: string) {
-  const {user} = await auth.signInWithEmailAndPassword(email, password)
-  if (!user) throw new Error("auth/user-not-found")
-  const fsUser = await firestore("users", user.uid).get()
-  if (!fsUser.exists) await _register(user)
+  if (!auth.currentUser) throw new Error("User not found")
+  const creds = firebase.auth.EmailAuthProvider.credential(email, password)
+
+  try {
+    const {user: fbUser} = await auth.signInWithCredential(creds)
+    const fbUserRef = await firestore("users", fbUser.uid).get()
+    const fsUser = fbUserRef.exists
+      ? (fbUserRef.data() as FirestoreUser)
+      : await createFirestoreUser(fbUser)
+    return {fbUser, fsUser}
+  } catch (err) {
+    switch (err.code) {
+      case "auth/user-not-found": {
+        const {user: fbUser} = await auth.currentUser.linkWithCredential(creds)
+        const fsUser = await createFirestoreUser(fbUser)
+        return {fbUser, fsUser}
+      }
+
+      default: {
+        throw err
+      }
+    }
+  }
 }
 
 export async function signInWithGoogle() {
@@ -55,7 +81,7 @@ export async function signInWithGoogle() {
   const {user} = await auth.signInWithPopup(provider)
   if (!user) throw new Error("auth/user-not-found")
   const fsUser = await firestore("users", user.uid).get()
-  if (!fsUser.exists) await _register(user)
+  if (!fsUser.exists) await createFirestoreUser(user)
 }
 
 export async function signOut() {

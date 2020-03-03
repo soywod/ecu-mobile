@@ -4,7 +4,6 @@ import {Button, Container, Content, Form, Input, Item, Text} from "native-base"
 import {NavigationStackScreenComponent} from "react-navigation-stack"
 
 import useAsync from "../_shared/async/context"
-import ScrollView from "../_shared/async/scroll-view"
 import {showToast} from "../app/toast"
 import useAuth from "../auth/context"
 
@@ -56,64 +55,56 @@ const Settings: NavigationStackScreenComponent = () => {
 
   return (
     <Container>
-      <Content padder>
-        <ScrollView>
-          {isAnonymous ? (
-            <>
-              <Text style={styles.connectHelp}>
-                Please connect to synchronize your expenses with all your devices:
-              </Text>
-              <Form>
-                <Item>
-                  <Input
-                    keyboardType="email-address"
-                    placeholder="Email"
-                    placeholderTextColor="#b0b0b0"
-                    value={email}
-                    onChange={handleInputChange(setEmail)}
-                    style={styles.input}
-                  />
-                </Item>
-                <Item>
-                  <Input
-                    keyboardType="visible-password"
-                    placeholder="Password"
-                    placeholderTextColor="#b0b0b0"
-                    value={password}
-                    onChange={handleInputChange(setPassword)}
-                    style={styles.input}
-                  />
-                </Item>
-                <Button
-                  full
-                  onPress={signIn}
-                  disabled={isLoading || !email || !password}
-                  style={styles.signInEmailBtn}
-                >
-                  {isLoading ? (
-                    <ActivityIndicator size="large" color="#ffffff" />
-                  ) : (
-                    <Text>Sign in</Text>
-                  )}
-                </Button>
-              </Form>
-            </>
-          ) : (
-            <>
-              <Text>You are identified with:</Text>
-              <Text style={styles.email}>{getEmail()}</Text>
-              <Button
-                light
-                full
-                onPress={signOut}
-                disabled={isLoading}
-                style={styles.signInEmailBtn}
-              >
-                {isLoading ? <ActivityIndicator color="#000000" /> : <Text>Sign out</Text>}
+      <Content padder keyboardShouldPersistTaps="handled">
+        {isAnonymous ? (
+          <>
+            <Text style={styles.connectHelp}>
+              Please connect to synchronize your expenses with all your devices:
+            </Text>
+            <Form>
+              <Item>
+                <Input
+                  autoCompleteType="email"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="email-address"
+                  placeholder="Email"
+                  placeholderTextColor="#b0b0b0"
+                  value={email}
+                  onChange={handleInputChange(setEmail)}
+                  style={styles.input}
+                />
+              </Item>
+              <Item>
+                <Input
+                  autoCompleteType="password"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  placeholder="Password"
+                  placeholderTextColor="#b0b0b0"
+                  value={password}
+                  onChange={handleInputChange(setPassword)}
+                  style={styles.input}
+                />
+              </Item>
+              <Button full onPress={signIn} style={styles.signInEmailBtn}>
+                {isLoading ? (
+                  <ActivityIndicator size="large" color="#ffffff" />
+                ) : (
+                  <Text>Sign in</Text>
+                )}
               </Button>
-            </>
-          )}
-        </ScrollView>
+            </Form>
+          </>
+        ) : (
+          <>
+            <Text>You are identified with:</Text>
+            <Text style={styles.email}>{getEmail()}</Text>
+            <Button light full onPress={signOut} disabled={isLoading} style={styles.signInEmailBtn}>
+              {isLoading ? <ActivityIndicator color="#000000" /> : <Text>Sign out</Text>}
+            </Button>
+          </>
+        )}
       </Content>
     </Container>
   )
@@ -130,8 +121,8 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   input: {
-    fontSize: 18,
-    paddingLeft: 10,
+    fontSize: 15,
+    paddingLeft: 0,
   },
   email: {
     fontStyle: "italic",

@@ -81,10 +81,18 @@ export const AuthContextProvider: FC = ({children}) => {
     }
   }, [auth])
 
-  const dispatch = useMemo(
+  const dispatch: AuthDispatch = useMemo(
     () => ({
       setAuth,
-      signIn: $auth.signIn,
+      signIn: async (email, password) => {
+        const {fbUser, fsUser} = await $auth.signIn(email, password)
+        setAuth({
+          initialized: true,
+          authenticated: true,
+          fbUser: fbUser,
+          fsUser,
+        })
+      },
       signInWithGoogle: $auth.signInWithGoogle,
       signOut: $auth.signOut,
     }),

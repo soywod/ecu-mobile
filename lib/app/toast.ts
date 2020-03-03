@@ -7,7 +7,7 @@ export function showToast(text: string, type?: "danger" | "success" | "warning")
     position: "bottom",
     buttonStyle: {backgroundColor: "#ffffff"},
     buttonTextStyle: {color: "#000000"},
-    duration: 2000,
+    duration: 4000,
   })
 }
 
