@@ -3,9 +3,9 @@ import RN, {ActivityIndicator, StyleSheet} from "react-native"
 import {Button, Container, Content, Form, Input, Item, Text} from "native-base"
 import {NavigationStackScreenComponent} from "react-navigation-stack"
 
-import useAsync from "../_shared/async/context"
-import {showToast} from "../app/toast"
-import useAuth from "../auth/context"
+import useAsync from "./async/context"
+import useAuth from "./auth/context"
+import {showToast} from "./toast"
 
 const Settings: NavigationStackScreenComponent = () => {
   const {auth, ...$auth} = useAuth()

@@ -1,4 +1,4 @@
-import {CollectionReference, firestore} from "../app/firebase"
+import {CollectionReference, firestore} from "../firebase"
 import {Expense, emptyExpense} from "./model"
 import {DateTime} from "luxon"
 import get from "lodash/fp/get"
@@ -8,6 +8,22 @@ type ExpenseChangeParams = {
   userId: string
   year?: number
   month?: number
+}
+
+export function onExpensesChanged(params: ExpenseChangeParams, handler: ExpenseChangedHandler) {
+  return withPeriod(params, firestore(`users/${params.userId}/expenses`))
+    .orderBy("date", "desc")
+    .onSnapshot(query => {
+      const expenses: Expense[] = []
+      query.forEach(doc => {
+        if (doc.exists) {
+          const data = doc.data()
+          const date = DateTime.fromSeconds(get("date.seconds", data)).toJSDate()
+          expenses.push({...emptyExpense, ...data, date})
+        }
+      })
+      handler(expenses)
+    })
 }
 
 function withPeriod(params: ExpenseChangeParams, col: CollectionReference) {
@@ -42,22 +58,6 @@ function withPeriod(params: ExpenseChangeParams, col: CollectionReference) {
   })
   const max = min.plus({month: 1}).minus({day: 1})
   return col.where("date", ">=", min.toJSDate()).where("date", "<=", max.toJSDate())
-}
-
-export function onExpensesChanged(params: ExpenseChangeParams, handler: ExpenseChangedHandler) {
-  return withPeriod(params, firestore(`users/${params.userId}/expenses`))
-    .orderBy("date", "desc")
-    .onSnapshot(query => {
-      const expenses: Expense[] = []
-      query.forEach(doc => {
-        if (doc.exists) {
-          const data = doc.data()
-          const date = DateTime.fromSeconds(get("date.seconds", data)).toJSDate()
-          expenses.push({...emptyExpense, ...data, date})
-        }
-      })
-      handler(expenses)
-    })
 }
 
 export function update(userId: string, expense: Partial<Expense>, merge = true) {

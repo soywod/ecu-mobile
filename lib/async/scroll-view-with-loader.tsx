@@ -4,11 +4,11 @@ import noop from "lodash/fp/noop"
 
 import useAsync from "./context"
 
-type ScrollViewProps = {
+type ScrollViewWithLoaderProps = {
   onRefresh?: () => void
 }
 
-const ScrollViewWithRefreshControl: FC<ScrollViewProps> = props => {
+const ScrollViewWithLoader: FC<ScrollViewWithLoaderProps> = props => {
   const refresh = props.onRefresh || noop
   const [isLoading, setLoading] = useAsync()
   const refreshControl = <RefreshControl refreshing={isLoading} onRefresh={handleRefresh} />
@@ -22,4 +22,4 @@ const ScrollViewWithRefreshControl: FC<ScrollViewProps> = props => {
   return <ScrollView refreshControl={refreshControl}>{props.children}</ScrollView>
 }
 
-export default ScrollViewWithRefreshControl
+export default ScrollViewWithLoader

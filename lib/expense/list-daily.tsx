@@ -1,31 +1,20 @@
 import React, {Fragment, useState} from "react"
 import {View} from "react-native"
 import {NavigationStackScreenComponent} from "react-navigation-stack"
-import {
-  Badge,
-  Button,
-  Container,
-  Content,
-  Icon,
-  Left,
-  List,
-  ListItem,
-  Right,
-  Text,
-} from "native-base"
+import {Button, Container, Content, Icon, Left, List, ListItem, Right, Text} from "native-base"
 import {DateTime} from "luxon"
 import filter from "lodash/fp/filter"
 import groupBy from "lodash/fp/groupBy"
 import keys from "lodash/fp/keys"
 import pipe from "lodash/fp/pipe"
 
-import useAsync from "../_shared/async/context"
-import ScrollView from "../_shared/async/scroll-view"
-import {genThemeStylesFromStr} from "../app/color"
-import {confirm} from "../app/alert"
-import {toEuro} from "../app/currency"
+import useAsync from "../async/context"
+import ScrollView from "../async/scroll-view-with-loader"
+import {confirm} from "../alert"
 import useExpenses from "./context"
 import {Expense} from "./model"
+import {toEuro} from "./currency"
+import Category from "./category"
 
 import styles from "./list.styles"
 
@@ -58,8 +47,6 @@ const DailyExpenseListView: NavigationStackScreenComponent = props => {
   }
 
   function renderExpense(expense: Expense) {
-    const {color, backgroundColor} = genThemeStylesFromStr(expense.cat || "")
-
     return (
       <ListItem
         key={expense.id}
@@ -69,14 +56,8 @@ const DailyExpenseListView: NavigationStackScreenComponent = props => {
         onLongPress={deleteExpense(expense.id)}
         style={styles.row}
       >
-        <View style={styles.catView}>
-          {expense.cat ? (
-            <Badge style={{...styles.catBadge, backgroundColor}}>
-              <Text numberOfLines={1} style={{...styles.cat, color}}>
-                {expense.cat}
-              </Text>
-            </Badge>
-          ) : null}
+        <View style={styles.cat}>
+          <Category category={expense.cat} />
         </View>
         <Text numberOfLines={1} style={styles.desc}>
           {expense.desc}

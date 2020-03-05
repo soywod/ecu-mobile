@@ -35,9 +35,7 @@ const styles = StyleSheet.create({
   date: {color: "rgba(0, 0, 0, 0.9)", fontSize: 15},
   totalContainer: {flex: 1},
   total: {color: "rgba(0, 0, 0, 0.9)", fontStyle: "italic", fontSize: 15},
-  catView: {flex: 2},
-  catBadge: {borderRadius: 5, justifyContent: "center", height: 20},
-  cat: {fontSize: 12, paddingTop: 0, paddingRight: 0, paddingBottom: 0, paddingLeft: 0},
+  cat: {flex: 2},
   desc: {color: "rgba(0, 0, 0, 0.9)", flex: 3, fontSize: 14, paddingLeft: 5},
   amount: {
     flex: 1,

@@ -1,6 +1,6 @@
 import {DateTime} from "luxon"
 
-import firebase, {User as FirebaseUser, auth, firestore} from "../app/firebase"
+import firebase, {User as FirebaseUser, auth, firestore} from "../firebase"
 import {User as FirestoreUser, emptyUser} from "./model"
 
 async function createFirestoreUser(fbUser: FirebaseUser) {

@@ -4,14 +4,14 @@ import {Left, List, ListItem, Right, Text} from "native-base"
 import {DateTime} from "luxon"
 import groupBy from "lodash/fp/groupBy"
 import keys from "lodash/fp/keys"
+import mapValues from "lodash/fp/mapValues"
+import pipe from "lodash/fp/pipe"
 import values from "lodash/fp/values"
 
-import ScrollView from "../_shared/async/scroll-view"
-import {toEuro} from "../app/currency"
+import ScrollView from "../async/scroll-view-with-loader"
 import useExpenses from "./context"
 import {Expense} from "./model"
-import pipe from "lodash/fp/pipe"
-import mapValues from "lodash/fp/mapValues"
+import {toEuro} from "./currency"
 
 import styles from "./list.styles"
 

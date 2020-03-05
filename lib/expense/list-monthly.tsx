@@ -1,32 +1,21 @@
 import React, {Fragment, useState} from "react"
 import {View} from "react-native"
 import {NavigationStackScreenComponent} from "react-navigation-stack"
-import {
-  Badge,
-  Button,
-  Container,
-  Content,
-  Icon,
-  Left,
-  List,
-  ListItem,
-  Right,
-  Text,
-} from "native-base"
+import {Button, Container, Content, Icon, Left, List, ListItem, Right, Text} from "native-base"
 import {DateTime} from "luxon"
 import filter from "lodash/fp/filter"
 import groupBy from "lodash/fp/groupBy"
 import keys from "lodash/fp/keys"
+import mapValues from "lodash/fp/mapValues"
+import pipe from "lodash/fp/pipe"
 import values from "lodash/fp/values"
 
-import useAsync from "../_shared/async/context"
-import ScrollView from "../_shared/async/scroll-view"
-import {genThemeStylesFromStr} from "../app/color"
-import {toEuro} from "../app/currency"
+import useAsync from "../async/context"
+import ScrollView from "../async/scroll-view-with-loader"
 import useExpenses from "./context"
 import {Expense} from "./model"
-import pipe from "lodash/fp/pipe"
-import mapValues from "lodash/fp/mapValues"
+import {toEuro} from "./currency"
+import Category from "./category"
 
 import styles from "./list.styles"
 
@@ -89,7 +78,6 @@ const MonthlyExpenseListView: NavigationStackScreenComponent = props => {
 
   function renderExpensesByCat(date: string, cat: string) {
     const expenses = monthlyExpenses[date][cat]
-    const {color, backgroundColor} = genThemeStylesFromStr(cat)
 
     return (
       <ListItem
@@ -100,9 +88,7 @@ const MonthlyExpenseListView: NavigationStackScreenComponent = props => {
         style={styles.row}
       >
         <Left>
-          <Badge style={{...styles.catBadge, backgroundColor}}>
-            <Text style={{...styles.cat, color}}>{cat || "no category"}</Text>
-          </Badge>
+          <Category category={cat} />
         </Left>
         <Right>
           <Text style={styles.amount}>

@@ -9,8 +9,8 @@ import map from "lodash/fp/map"
 import pipe from "lodash/fp/pipe"
 import uniq from "lodash/fp/uniq"
 
-import useAsync from "../_shared/async/context"
-import {confirm} from "../app/alert"
+import useAsync from "../async/context"
+import {confirm} from "../alert"
 import {Expense, emptyExpense} from "./model"
 import useExpenses from "./context"
 

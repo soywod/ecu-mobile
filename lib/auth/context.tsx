@@ -2,7 +2,7 @@ import React, {FC, createContext, useMemo, useContext, useEffect, useState} from
 import isEqual from "lodash/fp/isEqual"
 import noop from "lodash/fp/noop"
 
-import {User as FirebaseUser} from "../app/firebase"
+import {User as FirebaseUser} from "../firebase"
 import {User as FirestoreUser} from "./model"
 import $auth from "./service"
 

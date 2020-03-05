@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react"
 
-import {isLoading$} from "../_shared/async/context"
+import {isLoading$} from "../async/context"
 import {useAuthState} from "../auth/context"
 import {Expense} from "./model"
 import $expense from "./service"

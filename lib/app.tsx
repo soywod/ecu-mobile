@@ -1,13 +1,13 @@
 import {createAppContainer} from "react-navigation"
 import {createStackNavigator} from "react-navigation-stack"
 
-import ExpenseList from "../expense/list"
-import {DailyExpenseListScreen} from "../expense/list-daily"
-import {MonthlyExpenseListScreen} from "../expense/list-monthly"
-import ExpenseEdit from "../expense/edit"
-import Settings from "../settings/settings"
+import ExpenseList from "./expense/list"
+import {DailyExpenseListScreen} from "./expense/list-daily"
+import {MonthlyExpenseListScreen} from "./expense/list-monthly"
+import ExpenseEdit from "./expense/edit"
+import Settings from "./settings"
 
-const navigator = createStackNavigator(
+const App = createStackNavigator(
   {
     ExpenseList: {screen: ExpenseList},
     ExpenseListDaily: {screen: DailyExpenseListScreen},
@@ -18,4 +18,4 @@ const navigator = createStackNavigator(
   {initialRouteKey: "ExpenseList"},
 )
 
-export default createAppContainer(navigator)
+export default createAppContainer(App)
